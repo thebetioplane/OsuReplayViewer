@@ -71,6 +71,8 @@
             this.onscreenHelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sourceCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.axisFlipBtn = new System.Windows.Forms.Button();
+            this.axisFlipLabel = new System.Windows.Forms.Label();
             this.timeline = new ReplayViewer.Timeline();
             ((System.ComponentModel.ISupportInitialize)(this.timeWindowBar)).BeginInit();
             this.panel1.SuspendLayout();
@@ -519,6 +521,27 @@
             this.menuStrip1.TabIndex = 27;
             this.menuStrip1.Text = "menuStrip1";
             // 
+            // axisFlipBtn
+            // 
+            this.axisFlipBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.axisFlipBtn.Location = new System.Drawing.Point(19, 645);
+            this.axisFlipBtn.Name = "axisFlipBtn";
+            this.axisFlipBtn.Size = new System.Drawing.Size(75, 23);
+            this.axisFlipBtn.TabIndex = 28;
+            this.axisFlipBtn.Text = "Axis Flip";
+            this.axisFlipBtn.UseVisualStyleBackColor = true;
+            this.axisFlipBtn.Click += new System.EventHandler(this.axisFlipBtn_Click);
+            // 
+            // axisFlipLabel
+            // 
+            this.axisFlipLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.axisFlipLabel.AutoSize = true;
+            this.axisFlipLabel.Location = new System.Drawing.Point(26, 630);
+            this.axisFlipLabel.Name = "axisFlipLabel";
+            this.axisFlipLabel.Size = new System.Drawing.Size(55, 13);
+            this.axisFlipLabel.TabIndex = 29;
+            this.axisFlipLabel.Text = "Y-Axis Flip";
+            // 
             // timeline
             // 
             this.timeline.Anchor = System.Windows.Forms.AnchorStyles.None;
@@ -536,6 +559,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1043, 753);
+            this.Controls.Add(this.axisFlipBtn);
             this.Controls.Add(this.replayInfoLabel);
             this.Controls.Add(this.cursorColorPanel);
             this.Controls.Add(this.volumeBarLabel);
@@ -554,6 +578,7 @@
             this.Controls.Add(this.editBtn);
             this.Controls.Add(this.playBtn);
             this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.axisFlipLabel);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "osu! Replay Viewer";
@@ -620,6 +645,8 @@
         private System.Windows.Forms.ToolStripMenuItem sourceCodeToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem onscreenHelpToolStripMenuItem;
+        private System.Windows.Forms.Button axisFlipBtn;
+        private System.Windows.Forms.Label axisFlipLabel;
 
 
 

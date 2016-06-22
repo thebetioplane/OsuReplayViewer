@@ -8,6 +8,9 @@ namespace ReplayAPI
 {
     public class Replay : IDisposable
     {
+        // for customizing which replays to flip
+        public bool AxisFlip { get; set; }
+
         public GameModes GameMode;
         public string Filename;
         public int FileFormat;

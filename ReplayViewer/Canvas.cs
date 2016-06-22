@@ -402,15 +402,20 @@ namespace ReplayViewer
                     }
                 }
             }
+            byte forceFlip = 0xff;
             if (this.State_PlaybackMode == 0)
             {
+                if (MainForm.self.CurrentReplays[this.State_ReplaySelected] != null)
+                {
+                    forceFlip = this.BoolToByte(MainForm.self.CurrentReplays[this.State_ReplaySelected].AxisFlip);
+                }
                 Vector2 currentPos = Vector2.Zero;
                 Vector2 lastPos = new Vector2(-222, 0);
                 for (int i = 0; i < this.nearbyFrames[this.state_ReplaySelected].Count; i++)
                 {
                     ReplayAPI.ReplayFrame currentFrame = this.nearbyFrames[this.state_ReplaySelected][i];
                     float alpha = i / (float)this.nearbyFrames[this.state_ReplaySelected].Count;
-                    currentPos = this.InflateVector(new Vector2(currentFrame.X, currentFrame.Y));
+                    currentPos = this.InflateVector(new Vector2(currentFrame.X, currentFrame.Y), false, forceFlip);
                     bool selected = false;
                     if (this.selectedFrames != null)
                     {
@@ -460,7 +465,8 @@ namespace ReplayViewer
                 {
                     if (this.nearbyFrames[i] != null && this.nearbyFrames[i].Count >= 1)
                     {
-                        this.spriteBatch.Draw(this.cursorTexture, this.InflateVector(this.GetInterpolatedFrame(i)) - new Vector2(this.cursorTexture.Width, this.cursorTexture.Height) / 2f, Canvas.Color_Cursor[i]);
+                        forceFlip = this.BoolToByte(MainForm.self.CurrentReplays[i].AxisFlip);
+                        this.spriteBatch.Draw(this.cursorTexture, this.InflateVector(this.GetInterpolatedFrame(i), false, forceFlip) - new Vector2(this.cursorTexture.Width, this.cursorTexture.Height) / 2f, Canvas.Color_Cursor[i]);
                     }
                 }
             }
@@ -470,6 +476,18 @@ namespace ReplayViewer
             }
             this.spriteBatch.End();
             base.Draw(gameTime);
+        }
+
+        private byte BoolToByte(bool value)
+        {
+            if (value)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         private int BinarySearchReplayFrame(int replaynum, int target)
@@ -772,30 +790,25 @@ namespace ReplayViewer
             this.circleDiameter = (int)(2 * (40 - 4 * (moddedCS - 2)));
         }
 
-        private Vector2 InflateVector(Vector2 vector, bool flipWhenHardrock = false)
+        private Vector2 InflateVector(Vector2 vector, bool flipWhenHardrock = false, byte forceFlip = 0xff)
         {
             // takes a vector with x: 0 - 512 and y: 0 - 384 and turns them into coordinates for whole canvas size 
-            if (this.Visual_MapInvert && flipWhenHardrock)
+            bool shouldInvert = this.Visual_MapInvert && flipWhenHardrock;
+            if (forceFlip == 1)
+            {
+                shouldInvert = true;
+            }
+            else if (forceFlip == 0)
+            {
+                shouldInvert = false;
+            }
+            if (shouldInvert)
             {
                 return new Vector2(vector.X / 512f * this.Size.X, (384f - vector.Y) / 384f * this.Size.Y);
             }
             else
             {
                 return new Vector2(vector.X / 512f * this.Size.X, vector.Y / 384f * this.Size.Y);
-            }
-        }
-
-        private Vector2 DeflateVector(Vector2 vector, bool flipWhenHardrock = false)
-        {
-            // takes a vector for the whole canvas and puts it with respect to x: 0 - 512 and y: 0 - 384
-            // opposite of inflate vector
-            if (this.Visual_MapInvert && flipWhenHardrock)
-            {
-                return new Vector2(vector.X / this.Size.X * 512f, (this.Size.Y - vector.Y) / this.Size.Y * 384f);
-            }
-            else
-            {
-                return new Vector2(vector.X / this.Size.X * 512f, vector.Y / this.Size.Y * 384f);
             }
         }
 

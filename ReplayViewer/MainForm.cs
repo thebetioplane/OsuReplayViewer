@@ -107,6 +107,7 @@ namespace ReplayViewer
             catch
             {
             }
+            this.UpdateAxisFlipBtnText(false);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -531,7 +532,8 @@ namespace ReplayViewer
                     break;
                 }
             }
-            UpdateTitle();
+            this.UpdateTitle();
+            this.UpdateAxisFlipBtnText();
         }
 
         public void UpdateReplayRadio(byte value)
@@ -616,6 +618,40 @@ namespace ReplayViewer
             this.Canvas.ApplyMods(replay);
             this.CurrentReplays[this.Canvas.State_ReplaySelected] = replay;
             this.UpdateTitle();
+        }
+
+        private void axisFlipBtn_Click(object sender, EventArgs e)
+        {
+            if (this.CurrentReplays[this.Canvas.State_ReplaySelected] == null)
+            {
+                return;
+            }
+            this.CurrentReplays[this.Canvas.State_ReplaySelected].AxisFlip = !this.CurrentReplays[this.Canvas.State_ReplaySelected].AxisFlip;
+            this.UpdateAxisFlipBtnText();
+        }
+        
+        private void UpdateAxisFlipBtnText()
+        {
+            bool value = false;
+            if (this.CurrentReplays[this.Canvas.State_ReplaySelected] != null)
+            {
+                value = this.CurrentReplays[this.Canvas.State_ReplaySelected].AxisFlip;
+            }
+            this.UpdateAxisFlipBtnText(value);
+        }
+
+        private void UpdateAxisFlipBtnText(bool value)
+        {
+            string displayText;
+            if (value)
+            {
+                displayText = "Inverted";
+            }
+            else
+            {
+                displayText = "Normal";
+            }
+            this.axisFlipBtn.Text = displayText;
         }
     }
 }
