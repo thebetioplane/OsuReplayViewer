@@ -590,10 +590,22 @@ namespace ReplayViewer
             if (Directory.Exists(MainForm.Path_Replays))
             {
                 string[] files = Directory.GetFiles(MainForm.Path_Replays, "*.osr", SearchOption.TopDirectoryOnly);
+                ToolStripMenuItem parentItem = this.quickLoadToolStripMenuItem;
+                int groupBy = 30;
+                int maxItems = files.Length;
+                int counter = 0;
                 foreach (string fullpath in files)
                 {
+                    if (maxItems > groupBy && counter % groupBy == 0)
+                    {
+                        parentItem = new ToolStripMenuItem(String.Format("{0} to {1}", counter + 1, Math.Min(counter + groupBy, maxItems)));
+                        this.quickLoadToolStripMenuItem.DropDownItems.Add(parentItem);
+                    }
                     string[] split = fullpath.Split('\\');
-                    this.quickLoadToolStripMenuItem.DropDownItems.Add(new ToolStripMenuItem(split[split.Length - 1]));
+                    ToolStripMenuItem item = new ToolStripMenuItem(split[split.Length - 1]);
+                    item.Click += item_Click;
+                    parentItem.DropDownItems.Add(item);
+                    counter++;
                 }
             }
             else
@@ -602,10 +614,14 @@ namespace ReplayViewer
             }
         }
 
-        private void quickLoadToolStripMenuItem_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        private void item_Click(object sender, EventArgs e)
         {
             this.quickLoadToolStripMenuItem.DropDownItems.Clear();
-            this.Open(Path.Combine(MainForm.Path_Replays, e.ClickedItem.Text));
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            if (item != null)
+            {
+                this.Open(Path.Combine(MainForm.Path_Replays, item.Text));
+            }
         }
 
         private void onscreenHelpCtrlHToolStripMenuItem_Click(object sender, EventArgs e)

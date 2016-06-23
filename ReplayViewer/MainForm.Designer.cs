@@ -482,7 +482,6 @@
             this.quickLoadToolStripMenuItem.Size = new System.Drawing.Size(79, 20);
             this.quickLoadToolStripMenuItem.Text = "Quick Load";
             this.quickLoadToolStripMenuItem.DropDownOpening += new System.EventHandler(this.quickLoadToolStripMenuItem_DropDownOpening);
-            this.quickLoadToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.quickLoadToolStripMenuItem_DropDownItemClicked);
             // 
             // helpToolStripMenuItem
             // 
