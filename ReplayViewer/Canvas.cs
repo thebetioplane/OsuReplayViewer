@@ -92,6 +92,7 @@ namespace ReplayViewer
         private Texture2D helpTexture;
         private Texture2D sliderEdgeTexture;
         private Texture2D sliderBodyTexture;
+        private Texture2D reverseArrowTexture;
 
         public Canvas(IntPtr surface, Form form)
         {
@@ -177,6 +178,7 @@ namespace ReplayViewer
             this.sliderEdgeTexture = this.TextureFromFile(MainForm.Path_Img_SliderEdge);
             this.sliderBodyTexture = this.TextureFromFile(MainForm.Path_Img_SliderBody);
             this.lineTexture = this.TextureFromColor(Color.White);
+            this.reverseArrowTexture = this.TextureFromFile(MainForm.Path_Img_ReverseArrow);
         }
 
         private Texture2D TextureFromFile(string path)
@@ -187,7 +189,7 @@ namespace ReplayViewer
             }
             catch
             {
-                MainForm.ErrorMessage(String.Format("Could not the load the image found at \"{0}\", please make sure it exists and is a valid .png image.", path));
+                MainForm.ErrorMessage(String.Format("Could not the load the image found at \"{0}\", please make sure it exists and is a valid .png image.\nRedownloading the .zip file will also restore lost images and update new ones.", path));
                 return this.TextureFromColor(Color.Magenta);
             }
         }
@@ -216,6 +218,7 @@ namespace ReplayViewer
             this.sliderEdgeTexture.Dispose();
             this.sliderBodyTexture.Dispose();
             this.lineTexture.Dispose();
+            this.reverseArrowTexture.Dispose();
         }
 
         protected override void Update(GameTime gameTime)
@@ -391,9 +394,7 @@ namespace ReplayViewer
                     }
                     else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Slider))
                     {
-                        this.DrawSlider(hitObjectAsSlider, alpha, b);
-                        this.DrawHitcircle(hitObject, alpha, b);
-                        this.DrawApproachCircle(hitObject, alpha, approachCircleValue);
+                        this.DrawSlider(hitObjectAsSlider, alpha, b, approachCircleValue);
                     }
                     else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner))
                     {
@@ -610,12 +611,15 @@ namespace ReplayViewer
             this.spriteBatch.Draw(this.spinnerTexture, rect, null, new Color(1.0f, 1.0f, 1.0f, alpha), 0f, Vector2.Zero, SpriteEffects.None, 0.1f);
         }
 
-        private void DrawSlider(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, int zindex)
+        private void DrawSlider(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, int zindex, float approachCircleValue)
         {
-            this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, zindex);
             float time = (float)(this.songPlayer.SongTime - hitObject.StartTime) / (float)((hitObject.SegmentEndTime - hitObject.StartTime) * hitObject.RepeatCount);
+            byte reverseArrowType = (hitObject.RepeatCount > 1) ? (byte)1 : (byte)0;
             if (time < 0)
             {
+                this.DrawHitcircle(hitObject, alpha, zindex);
+                this.DrawApproachCircle(hitObject, alpha, approachCircleValue);
+                this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, zindex, reverseArrowType);
                 return;
             }
             else if (time > 1)
@@ -630,12 +634,15 @@ namespace ReplayViewer
                 {
                     time -= 1;
                     order++;
+                    reverseArrowType = 1;
                 }
                 if (order % 2 != 0)
                 {
                     time = 1 - time;
+                    reverseArrowType = 2;
                 }
             }
+            this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, zindex, reverseArrowType);
             Vector2 pos = this.InflateVector(hitObject.PositionAtTime(time), true);
             // 128x128 is the size of the sprite image for hitcircles
             int diameter = (int)(this.circleDiameter / 128f * this.sliderFollowCircleTexture.Width * this.Size.X / 512f);
@@ -670,6 +677,69 @@ namespace ReplayViewer
                 {
                     break;
                 }
+            }
+        }
+
+        private void DrawSliderBody(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, int radius, int zindex, byte reverseArrowType)
+        {
+            float smallLength = hitObject.TotalLength;
+            Color color = Color.White;
+            float depthHigh = (zindex * 3 + 2) / 1000.0f;
+            float depthMed = (zindex * 3 + 1) / 1000.0f;
+            float depthLow = (zindex * 3) / 1000.0f;
+            byte alphaByte = (byte)(255 * alpha);
+            Rectangle firstRect = new Rectangle(-222, -222, 222, 222);
+            Rectangle lastRect = new Rectangle(-222, -222, 222, 222);
+            Rectangle firstRectDiff = new Rectangle(-222, -222, 222, 222);
+            Rectangle lastRectDiff = new Rectangle(-222, -222, 222, 222);
+            for (float i = 0; i < smallLength + 10; i += 10)
+            {
+                if (i > smallLength)
+                {
+                    i = smallLength;
+                }
+                Vector2 pos = this.InflateVector(hitObject.PositionAtTime(i / smallLength), true);
+                int diameter = (int)(this.circleDiameter * this.Size.X / 512f);
+                Rectangle rect = new Rectangle((int)pos.X, (int)pos.Y, diameter, diameter);
+                rect.X -= rect.Width / 2;
+                rect.Y -= rect.Height / 2;
+                if (firstRect.X == -222)
+                {
+                    firstRect = rect;
+                }
+                else if (firstRectDiff.X == -222)
+                {
+                    firstRectDiff = rect;
+                }
+                lastRectDiff = lastRect;
+                lastRect = rect;
+                color.A = alphaByte;
+                this.spriteBatch.Draw(this.sliderEdgeTexture, rect, null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.4f + depthHigh);
+                color.A = 255;
+                this.spriteBatch.Draw(this.sliderBodyTexture, rect, null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.4f + depthMed);
+                if (i == smallLength)
+                {
+                    break;
+                }
+            }
+            if (reverseArrowType != 0)
+            {
+                color.A = alphaByte;
+                Rectangle mode;
+                float rotation;
+                if (reverseArrowType == 1)
+                {
+                    mode = lastRect;
+                    rotation = (float)Math.Atan2(lastRectDiff.Y - lastRect.Y, lastRectDiff.X - lastRect.X);
+                }
+                else
+                {
+                    rotation = (float)Math.Atan2(firstRectDiff.Y - firstRect.Y, firstRectDiff.X - firstRect.X);
+                    mode = firstRect;
+                }
+                mode.X += 52;
+                mode.Y += 52;
+                this.spriteBatch.Draw(this.reverseArrowTexture, mode, null, color, rotation, new Vector2(64.0f), SpriteEffects.None, 0.4f + depthLow);
             }
         }
 

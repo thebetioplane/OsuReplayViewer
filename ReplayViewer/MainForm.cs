@@ -26,6 +26,7 @@ namespace ReplayViewer
         public static string Path_Img_Help = @"img/help.png";
         public static string Path_Img_SliderEdge = @"img/slideredge.png";
         public static string Path_Img_SliderBody = @"img/sliderbody.png";
+        public static string Path_Img_ReverseArrow = @"img/reversearrow.png";
         public static MainForm self;
         public List<ReplayAPI.Replay> CurrentReplays;
         public Canvas Canvas { get; set; }
