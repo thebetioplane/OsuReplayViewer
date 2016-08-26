@@ -629,17 +629,18 @@ namespace ReplayViewer
             time *= hitObject.RepeatCount;
             if (time > 1)
             {
+                bool drawArrow = time - (hitObject.RepeatCount - 1) < 0;
                 int order = 0;
                 while (time > 1)
                 {
                     time -= 1;
                     order++;
-                    reverseArrowType = 1;
+                    reverseArrowType = drawArrow ? (byte)1 : (byte)0;
                 }
                 if (order % 2 != 0)
                 {
                     time = 1 - time;
-                    reverseArrowType = 2;
+                    reverseArrowType = drawArrow ? (byte)2 : (byte)0;
                 }
             }
             this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, zindex, reverseArrowType);
