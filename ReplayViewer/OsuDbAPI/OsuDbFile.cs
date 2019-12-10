@@ -9,7 +9,7 @@ namespace OsuDbAPI
 {
     /*
         Holds the data for the osu!.db file
-        Reference: https://osu.ppy.sh/wiki/Db_%28file_format%29
+        Reference: https://osu.ppy.sh/help/wiki/osu!_File_Formats/Db_(file_format)
     */
     public class OsuDbFile
     {
@@ -69,7 +69,8 @@ namespace OsuDbAPI
         private Beatmap readBeatmap()
         {
             int n;
-            this.fileReader.ReadInt32();
+            if (this.Version < 20191106)
+                this.fileReader.ReadInt32();
             Beatmap beatmap = new Beatmap();
             beatmap.ArtistName = this.readNullableString();
             beatmap.ArtistNameUnicode = this.readNullableString();

@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using ReplayViewer.Curves;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector2 = OpenTK.Vector2;
 
 namespace BMAPI.v1.HitObjects
 {

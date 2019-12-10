@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.playBtn = new System.Windows.Forms.Button();
             this.editBtn = new System.Windows.Forms.Button();
             this.timeWindowBar = new System.Windows.Forms.TrackBar();
@@ -42,7 +43,6 @@
             this.speed050Radio = new System.Windows.Forms.RadioButton();
             this.speed025Radio = new System.Windows.Forms.RadioButton();
             this.speed075Radio = new System.Windows.Forms.RadioButton();
-            this.pictureBox = new System.Windows.Forms.PictureBox();
             this.viewBtn = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
             this.replay7Radio = new System.Windows.Forms.RadioButton();
@@ -73,10 +73,12 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.axisFlipBtn = new System.Windows.Forms.Button();
             this.axisFlipLabel = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.Canvas = new ReplayViewer.Canvas();
             this.timeline = new ReplayViewer.Timeline();
             ((System.ComponentModel.ISupportInitialize)(this.timeWindowBar)).BeginInit();
             this.panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.volumeBar)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -84,8 +86,8 @@
             // 
             // playBtn
             // 
-            this.playBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.playBtn.Location = new System.Drawing.Point(107, 695);
+            this.playBtn.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.playBtn.Location = new System.Drawing.Point(78, 603);
             this.playBtn.Name = "playBtn";
             this.playBtn.Size = new System.Drawing.Size(126, 44);
             this.playBtn.TabIndex = 2;
@@ -95,7 +97,6 @@
             // 
             // editBtn
             // 
-            this.editBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.editBtn.Location = new System.Drawing.Point(251, 24);
             this.editBtn.Name = "editBtn";
             this.editBtn.Size = new System.Drawing.Size(138, 37);
@@ -106,8 +107,8 @@
             // 
             // timeWindowBar
             // 
-            this.timeWindowBar.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.timeWindowBar.Location = new System.Drawing.Point(239, 710);
+            this.timeWindowBar.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.timeWindowBar.Location = new System.Drawing.Point(210, 618);
             this.timeWindowBar.Maximum = 20;
             this.timeWindowBar.Minimum = 1;
             this.timeWindowBar.Name = "timeWindowBar";
@@ -118,9 +119,9 @@
             // 
             // label1
             // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(851, 719);
+            this.label1.Location = new System.Drawing.Point(822, 627);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(93, 13);
             this.label1.TabIndex = 8;
@@ -128,9 +129,9 @@
             // 
             // timeWindowLabel
             // 
-            this.timeWindowLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.timeWindowLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.timeWindowLabel.AutoSize = true;
-            this.timeWindowLabel.Location = new System.Drawing.Point(946, 719);
+            this.timeWindowLabel.Location = new System.Drawing.Point(917, 627);
             this.timeWindowLabel.Name = "timeWindowLabel";
             this.timeWindowLabel.Size = new System.Drawing.Size(47, 13);
             this.timeWindowLabel.TabIndex = 9;
@@ -138,7 +139,7 @@
             // 
             // panel1
             // 
-            this.panel1.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.panel1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.panel1.Controls.Add(this.speed400Radio);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.speed200Radio);
@@ -147,7 +148,7 @@
             this.panel1.Controls.Add(this.speed050Radio);
             this.panel1.Controls.Add(this.speed025Radio);
             this.panel1.Controls.Add(this.speed075Radio);
-            this.panel1.Location = new System.Drawing.Point(9, 133);
+            this.panel1.Location = new System.Drawing.Point(9, 87);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(92, 203);
             this.panel1.TabIndex = 10;
@@ -240,18 +241,8 @@
             this.speed075Radio.UseVisualStyleBackColor = true;
             this.speed075Radio.CheckedChanged += new System.EventHandler(this.speed075Radio_CheckedChanged);
             // 
-            // pictureBox
-            // 
-            this.pictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.pictureBox.Location = new System.Drawing.Point(107, 67);
-            this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(832, 624);
-            this.pictureBox.TabIndex = 11;
-            this.pictureBox.TabStop = false;
-            // 
             // viewBtn
             // 
-            this.viewBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.viewBtn.Location = new System.Drawing.Point(107, 24);
             this.viewBtn.Name = "viewBtn";
             this.viewBtn.Size = new System.Drawing.Size(138, 37);
@@ -262,7 +253,7 @@
             // 
             // panel2
             // 
-            this.panel2.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.panel2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.panel2.Controls.Add(this.replay7Radio);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.replay6Radio);
@@ -271,7 +262,7 @@
             this.panel2.Controls.Add(this.replay2Radio);
             this.panel2.Controls.Add(this.replay1Radio);
             this.panel2.Controls.Add(this.replay3Radio);
-            this.panel2.Location = new System.Drawing.Point(7, 371);
+            this.panel2.Location = new System.Drawing.Point(7, 325);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(92, 203);
             this.panel2.TabIndex = 19;
@@ -367,8 +358,8 @@
             // 
             // unloadBtn
             // 
-            this.unloadBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.unloadBtn.Location = new System.Drawing.Point(19, 570);
+            this.unloadBtn.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.unloadBtn.Location = new System.Drawing.Point(18, 536);
             this.unloadBtn.Name = "unloadBtn";
             this.unloadBtn.Size = new System.Drawing.Size(75, 23);
             this.unloadBtn.TabIndex = 20;
@@ -378,9 +369,9 @@
             // 
             // songTimeLabel
             // 
-            this.songTimeLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.songTimeLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.songTimeLabel.AutoSize = true;
-            this.songTimeLabel.Location = new System.Drawing.Point(946, 696);
+            this.songTimeLabel.Location = new System.Drawing.Point(917, 604);
             this.songTimeLabel.Name = "songTimeLabel";
             this.songTimeLabel.Size = new System.Drawing.Size(29, 13);
             this.songTimeLabel.TabIndex = 21;
@@ -388,8 +379,8 @@
             // 
             // volumeBar
             // 
-            this.volumeBar.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.volumeBar.Location = new System.Drawing.Point(962, 158);
+            this.volumeBar.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.volumeBar.Location = new System.Drawing.Point(903, 112);
             this.volumeBar.Name = "volumeBar";
             this.volumeBar.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.volumeBar.Size = new System.Drawing.Size(45, 416);
@@ -402,7 +393,7 @@
             // 
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(952, 141);
+            this.label4.Location = new System.Drawing.Point(923, 95);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(45, 13);
             this.label4.TabIndex = 23;
@@ -412,7 +403,7 @@
             // 
             this.volumeBarLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.volumeBarLabel.AutoSize = true;
-            this.volumeBarLabel.Location = new System.Drawing.Point(994, 140);
+            this.volumeBarLabel.Location = new System.Drawing.Point(965, 94);
             this.volumeBarLabel.Name = "volumeBarLabel";
             this.volumeBarLabel.Size = new System.Drawing.Size(36, 13);
             this.volumeBarLabel.TabIndex = 24;
@@ -421,7 +412,6 @@
             // 
             // cursorColorPanel
             // 
-            this.cursorColorPanel.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.cursorColorPanel.BackColor = System.Drawing.Color.Red;
             this.cursorColorPanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.cursorColorPanel.Location = new System.Drawing.Point(396, 25);
@@ -431,7 +421,6 @@
             // 
             // replayInfoLabel
             // 
-            this.replayInfoLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.replayInfoLabel.AutoSize = true;
             this.replayInfoLabel.Location = new System.Drawing.Point(439, 25);
             this.replayInfoLabel.Name = "replayInfoLabel";
@@ -516,14 +505,14 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1043, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(984, 24);
             this.menuStrip1.TabIndex = 27;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // axisFlipBtn
             // 
-            this.axisFlipBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.axisFlipBtn.Location = new System.Drawing.Point(19, 645);
+            this.axisFlipBtn.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.axisFlipBtn.Location = new System.Drawing.Point(19, 579);
             this.axisFlipBtn.Name = "axisFlipBtn";
             this.axisFlipBtn.Size = new System.Drawing.Size(75, 23);
             this.axisFlipBtn.TabIndex = 28;
@@ -533,18 +522,67 @@
             // 
             // axisFlipLabel
             // 
-            this.axisFlipLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.axisFlipLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.axisFlipLabel.AutoSize = true;
-            this.axisFlipLabel.Location = new System.Drawing.Point(26, 630);
+            this.axisFlipLabel.Location = new System.Drawing.Point(26, 563);
             this.axisFlipLabel.Name = "axisFlipLabel";
             this.axisFlipLabel.Size = new System.Drawing.Size(55, 13);
             this.axisFlipLabel.TabIndex = 29;
             this.axisFlipLabel.Text = "Y-Axis Flip";
             // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Red;
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel3.Location = new System.Drawing.Point(396, 25);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(36, 36);
+            this.panel3.TabIndex = 25;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(439, 25);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(0, 13);
+            this.label5.TabIndex = 26;
+            // 
+            // Canvas
+            // 
+            this.Canvas.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.Canvas.BackColor = System.Drawing.Color.Black;
+            this.Canvas.Beatmap = null;
+// TODO: Code generation for '' failed because of Exception 'Invalid Primitive Type: System.IntPtr. Consider using CodeObjectCreateExpression.'.
+            this.Canvas.FirstHitObjectTime = 0;
+            this.Canvas.Location = new System.Drawing.Point(107, 67);
+            this.Canvas.MaxSongTime = 0;
+            this.Canvas.Name = "Canvas";
+            this.Canvas.ShowHelp = ((byte)(0));
+            this.Canvas.Size = new System.Drawing.Size(773, 532);
+            this.Canvas.State_CurveSmoothness = 0;
+            this.Canvas.State_FadeTime = 0;
+            this.Canvas.State_PlaybackFlow = ((byte)(0));
+            this.Canvas.State_PlaybackMode = ((byte)(0));
+            this.Canvas.State_PlaybackSpeed = 0F;
+            this.Canvas.State_ReplaySelected = ((byte)(0));
+            this.Canvas.State_TimeRange = 0;
+            this.Canvas.State_Volume = 0F;
+            this.Canvas.TabIndex = 30;
+            this.Canvas.Visual_BeatmapAR = 0F;
+            this.Canvas.Visual_BeatmapCS = 0F;
+            this.Canvas.Visual_EasyAR = false;
+            this.Canvas.Visual_EasyCS = false;
+            this.Canvas.Visual_HardRockAR = false;
+            this.Canvas.Visual_HardRockCS = false;
+            this.Canvas.Visual_MapInvert = false;
+            this.Canvas.VSync = false;
+            // 
             // timeline
             // 
-            this.timeline.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.timeline.Location = new System.Drawing.Point(239, 695);
+            this.timeline.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.timeline.Location = new System.Drawing.Point(210, 603);
             this.timeline.Name = "timeline";
             this.timeline.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.timeline.Size = new System.Drawing.Size(700, 15);
@@ -557,16 +595,18 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1043, 753);
+            this.ClientSize = new System.Drawing.Size(984, 661);
+            this.Controls.Add(this.Canvas);
             this.Controls.Add(this.axisFlipBtn);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.replayInfoLabel);
+            this.Controls.Add(this.panel3);
             this.Controls.Add(this.cursorColorPanel);
             this.Controls.Add(this.volumeBarLabel);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.volumeBar);
             this.Controls.Add(this.songTimeLabel);
             this.Controls.Add(this.unloadBtn);
-            this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.viewBtn);
             this.Controls.Add(this.timeline);
@@ -578,6 +618,7 @@
             this.Controls.Add(this.playBtn);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.axisFlipLabel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "osu! Replay Viewer";
@@ -587,7 +628,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.timeWindowBar)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.volumeBar)).EndInit();
@@ -614,7 +654,6 @@
         private System.Windows.Forms.RadioButton speed100Radio;
         private System.Windows.Forms.RadioButton speed050Radio;
         private System.Windows.Forms.RadioButton speed025Radio;
-        private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button viewBtn;
         private System.Windows.Forms.Panel panel2;
@@ -646,13 +685,9 @@
         private System.Windows.Forms.ToolStripMenuItem onscreenHelpToolStripMenuItem;
         private System.Windows.Forms.Button axisFlipBtn;
         private System.Windows.Forms.Label axisFlipLabel;
-
-
-
-
-
-
-
+        private Canvas Canvas;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Label label5;
     }
 }
 

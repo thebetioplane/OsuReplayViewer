@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Un4seen.Bass;
-using Un4seen.Bass.AddOn.Fx;
+using ManagedBass;
 
 namespace ReplayViewer
 {
@@ -31,7 +27,7 @@ namespace ReplayViewer
                 {
                     return 0;
                 }
-                return Bass.BASS_ChannelBytes2Seconds(this.stream, Bass.BASS_ChannelGetPosition(this.stream)) * 1000;
+                return Bass.ChannelBytes2Seconds(this.stream, Bass.ChannelGetPosition(this.stream) * 1000);
             }
         }
         private string songPath = "";
@@ -40,16 +36,15 @@ namespace ReplayViewer
 
         public SongPlayer()
         {
-            BassNetRegister.Register();
         }
 
         public void Start(string path)
         {
             this.Stop();
-            Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
+            Bass.Init(-1, 44100, DeviceInitFlags.Default, IntPtr.Zero);
             this.songPath = path;
-            this.stream = Bass.BASS_StreamCreateFile(this.songPath, 0, 0, BASSFlag.BASS_STREAM_DECODE);
-            this.stream = BassFx.BASS_FX_TempoCreate(this.stream, BASSFlag.BASS_FX_TEMPO_ALGO_LINEAR);
+            this.stream = Bass.CreateStream(this.songPath, 0, 0, BassFlags.Decode);
+            this.stream = ManagedBass.Fx.BassFx.TempoCreate(this.stream, BassFlags.FxTempoAlgorithmLinear);
             if (this.stream == 0)
             {
                 throw new Exception("Audio stream could not be created.");
@@ -61,7 +56,7 @@ namespace ReplayViewer
             if (this.playing != 2 && this.stream != 0)
             {
                 this.playing = 2;
-                Bass.BASS_ChannelPause(this.stream);
+                Bass.ChannelPause(this.stream);
             }
         }
 
@@ -70,7 +65,7 @@ namespace ReplayViewer
             if (this.stream != 0)
             {
                 this.playing = 1;
-                Bass.BASS_ChannelPlay(this.stream, false);
+                Bass.ChannelPlay(this.stream, false);
             }
         }
 
@@ -79,8 +74,8 @@ namespace ReplayViewer
             if (this.playing != 0 && this.stream != 0)
             {
                 this.playing = 0;
-                Bass.BASS_StreamFree(this.stream);
-                Bass.BASS_Free();
+                Bass.StreamFree(this.stream);
+                Bass.Free();
                 this.stream = 0;
             }
         }
@@ -93,7 +88,7 @@ namespace ReplayViewer
                 {
                     ms = 0;
                 }
-                Bass.BASS_ChannelSetPosition(this.stream, ms / (double)1000);
+                Bass.ChannelSetPosition(this.stream, Bass.ChannelSeconds2Bytes(this.stream, ms / (double)1000), PositionFlags.Bytes);
             }
         }
 
@@ -102,7 +97,7 @@ namespace ReplayViewer
             if (this.stream != 0)
             {
                 value = 100 * (value - 1);
-                if(! Bass.BASS_ChannelSetAttribute(this.stream, BASSAttribute.BASS_ATTRIB_TEMPO, value))
+                if (!Bass.ChannelSetAttribute(this.stream, ChannelAttribute.Tempo, value))
                 {
                     throw new Exception(String.Format("Could not change tempo to {0}%", value));
                 }
@@ -113,7 +108,7 @@ namespace ReplayViewer
         {
             if (this.stream != 0)
             {
-                if (! Bass.BASS_ChannelSetAttribute(this.stream, BASSAttribute.BASS_ATTRIB_VOL, value))
+                if (!Bass.ChannelSetAttribute(this.stream, ChannelAttribute.Volume, value))
                 {
                     throw new Exception(String.Format("Could not change volume to {0}%", value * 100));
                 }

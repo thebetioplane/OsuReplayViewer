@@ -1,5 +1,5 @@
 ﻿using System;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector2 = OpenTK.Vector2;
 
 namespace ReplayViewer.Curves
 {

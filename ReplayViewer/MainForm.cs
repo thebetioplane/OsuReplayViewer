@@ -1,13 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using Microsoft.Xna.Framework;
+using System.Diagnostics;
 
 namespace ReplayViewer
 {
@@ -29,7 +24,6 @@ namespace ReplayViewer
         public static string Path_Img_ReverseArrow = @"img/reversearrow.png";
         public static MainForm self;
         public List<ReplayAPI.Replay> CurrentReplays;
-        public Canvas Canvas { get; set; }
         public OsuDbAPI.OsuDbFile OsuDbFile { get; set; }
 
         public MainForm()
@@ -40,18 +34,20 @@ namespace ReplayViewer
             {
                 this.CurrentReplays.Add(null);
             }
-            this.Canvas = null;
             InitializeComponent();
+            this.Stopwatch = new Stopwatch();
+            this.Stopwatch.Start();
+            Application.Idle += Application_Idle;
         }
 
-        public IntPtr GetPictureBoxHandle()
-        {
-            return this.pictureBox.Handle;
-        }
+        private Stopwatch Stopwatch;
 
-        private void pictureBox_Resize(object sender, EventArgs e)
+        private void Application_Idle(object sender, EventArgs e)
         {
-            // do we even need to do anything here ?
+            this.Stopwatch.Stop();
+            if (this.Stopwatch.ElapsedMilliseconds > 2)
+                this.Canvas.Invalidate();
+            this.Stopwatch.Restart();
         }
 
         public void SetSettings(string[] settings)
@@ -96,19 +92,9 @@ namespace ReplayViewer
 
         private void Main_Load(object sender, EventArgs e)
         {
-            try
-            {
-                string version = " build " + File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "files", "version.txt"));
-                if (version.Length > 40)
-                {
-                    version = version.Substring(0, 40);
-                }
-                this.Text += version;
-            }
-            catch
-            {
-            }
+            this.Text += " build " + Program.BUILD_DATE;
             this.UpdateAxisFlipBtnText(false);
+            this.Canvas.Init();
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -260,9 +246,9 @@ namespace ReplayViewer
                 }
                 this.volumeBar_Scroll(null, null);
             }
-            catch
+            catch (Exception e)
             {
-                MainForm.ErrorMessage("The file you attempted to load was not a replay file.");
+                MainForm.ErrorMessage("Error loading replay: perhaps it is not a replay file ?\nmore info: " + e.Message);
             }
         }
 
@@ -283,8 +269,8 @@ namespace ReplayViewer
                 this.Text = String.Format("{0} playing:  {1} - {2} [{3}] (mapped by {4})", playerName, this.Canvas.Beatmap.Artist, this.Canvas.Beatmap.Title, this.Canvas.Beatmap.Version, this.Canvas.Beatmap.Creator);
                 this.replayInfoLabel.Text = String.Format("{0} playing:\n{1} - {2} [{3}]\n(mapped by {4})", playerName, this.Canvas.Beatmap.Artist, this.Canvas.Beatmap.Title, this.Canvas.Beatmap.Version, this.Canvas.Beatmap.Creator);
             }
-            Microsoft.Xna.Framework.Color c = Canvas.Color_Cursor[this.Canvas.State_ReplaySelected];
-            this.cursorColorPanel.BackColor = System.Drawing.Color.FromArgb(c.R, c.G, c.B);
+            OpenTK.Graphics.Color4 c = Canvas.Color_Cursor[this.Canvas.State_ReplaySelected];
+            this.cursorColorPanel.BackColor = System.Drawing.Color.FromArgb((int)(255 * c.R), (int)(255 * c.G), (int)(255 * c.B));
         }
 
         public RadioButton GetReplayRadioBtn(int n)

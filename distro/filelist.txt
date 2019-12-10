@@ -1,0 +1,17 @@
+20191200
+ManagedBass.Fx.dll
+ManagedBass.dll
+OpenTK.GLControl.dll
+OpenTK.dll
+bass.dll
+bass_fx.dll
+img\approachcircle.png
+img\cursor.png
+img\editornode.png
+img\help.png
+img\hitcircle.png
+img\reversearrow.png
+img\sliderbody.png
+img\slideredge.png
+img\sliderfollowcircle.png
+img\spinner.png

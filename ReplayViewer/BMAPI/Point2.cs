@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
+using Vector2 = OpenTK.Vector2;
 
 namespace BMAPI
 {
