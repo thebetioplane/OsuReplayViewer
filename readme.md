@@ -33,3 +33,26 @@ weird scaling issues and changing the way checking for updates works
 (the old updater was a POS). And while I have a build environment setup
 now as well as a way to push updates better, I may fix other issues if
 you bring them to my attention through the GitHub issue tracker.
+
+### Compiling
+
+These are the instructions for Visual Studio 2017+ on windows because
+that is probably the most common.
+
+(1) clone the repo with git
+
+(2) open the package manager console (from within visual studio)
+
+(3) run `Update-Package` to install ManagedBass and OpenTK
+
+(4) additionally you are going to need the dll files "bass.dll" and
+"bass_fx.dll". to be placed in your bin/Debug or bin/Release You can get
+them from the developers https://www.un4seen.com/ or they are mirrored
+in the "distro" folder.
+
+(5) build compile run
+
+(6) It may be beneficial to put a blank file named `no-update` in your
+bin/Debug or bin/Release. This will disable all network activity and
+prevent the updater from trying to replace what it thinks are outdated
+files.

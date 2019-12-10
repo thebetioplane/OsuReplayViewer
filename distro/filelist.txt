@@ -1,4 +1,5 @@
-20191200
+2019MMDD00
+ReplayViewer.exe
 ManagedBass.Fx.dll
 ManagedBass.dll
 OpenTK.GLControl.dll

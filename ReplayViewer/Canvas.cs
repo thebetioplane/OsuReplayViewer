@@ -315,8 +315,25 @@ namespace ReplayViewer
             }
         }
 
+        private void MulFlipMatrix()
+        {
+            double[] flipMatrix = {
+                1.0, 0.0, 0.0, 0.0,
+                0.0, -1.0, 0.0, 384.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+            };
+            GL.MultTransposeMatrix(flipMatrix);
+        }
+
         private void Draw(bool isBackground)
         {
+            if (this.Visual_MapInvert)
+            {
+                GL.MatrixMode(MatrixMode.Projection);
+                GL.PushMatrix();
+                this.MulFlipMatrix();
+            }
             //this.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.NonPremultiplied);
             for (int b = this.nearbyHitObjects.Count - 1; b >= 0; b--)
             {
@@ -398,14 +415,25 @@ namespace ReplayViewer
                     }
                 }
             }
+            if (this.Visual_MapInvert)
+            {
+                GL.MatrixMode(MatrixMode.Projection);
+                GL.PopMatrix();
+            }
             if (!isBackground)
             {
-                byte forceFlip = 0xff;
+                bool forceFlip = false;
                 if (this.State_PlaybackMode == 0)
                 {
                     if (MainForm.self.CurrentReplays[this.State_ReplaySelected] != null)
                     {
-                        forceFlip = this.BoolToByte(MainForm.self.CurrentReplays[this.State_ReplaySelected].AxisFlip);
+                        forceFlip = MainForm.self.CurrentReplays[this.State_ReplaySelected].AxisFlip;
+                    }
+                    if (forceFlip)
+                    {
+                        GL.MatrixMode(MatrixMode.Projection);
+                        GL.PushMatrix();
+                        this.MulFlipMatrix();
                     }
                     Vector2 currentPos = Vector2.Zero;
                     Vector2 lastPos = new Vector2(-222, 0);
@@ -438,6 +466,11 @@ namespace ReplayViewer
                         this.nodeTexture.Draw(currentPos - new Vector2(5, 5), Vector2.Zero, nodeColor);
                         lastPos = currentPos;
                     }
+                    if (forceFlip)
+                    {
+                        GL.MatrixMode(MatrixMode.Projection);
+                        GL.PopMatrix();
+                    }
                 }
                 else if (this.State_PlaybackMode == 1)
                 {
@@ -445,10 +478,21 @@ namespace ReplayViewer
                     {
                         if (this.nearbyFrames[i] != null && this.nearbyFrames[i].Count >= 1)
                         {
-                            forceFlip = this.BoolToByte(MainForm.self.CurrentReplays[i].AxisFlip);
+                            forceFlip = MainForm.self.CurrentReplays[i].AxisFlip;
+                            if (forceFlip)
+                            {
+                                GL.MatrixMode(MatrixMode.Projection);
+                                GL.PushMatrix();
+                                this.MulFlipMatrix();
+                            }
                             Vector2 cursorPos = this.GetInterpolatedFrame(i);
                             float diameter = 32.0f;
                             this.cursorTexture.Draw(cursorPos, diameter, diameter, new Vector2(diameter * 0.5f), Canvas.Color_Cursor[i]);
+                            if (forceFlip)
+                            {
+                                GL.MatrixMode(MatrixMode.Projection);
+                                GL.PopMatrix();
+                            }
                         }
                     }
                 }
@@ -462,18 +506,6 @@ namespace ReplayViewer
                     GL.MatrixMode(MatrixMode.Projection);
                     GL.PopMatrix();
                 }
-            }
-        }
-
-        private byte BoolToByte(bool value)
-        {
-            if (value)
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
             }
         }
 

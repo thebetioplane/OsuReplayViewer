@@ -11,7 +11,7 @@ namespace ReplayViewer
         [DllImport("user32.dll")]
         private static extern bool SetProcessDPIAware();
         private static bool shouldCheckUpdate = true;
-        public const string BUILD_DATE = "2019-12-09";
+        public const string BUILD_DATE = "2019-12-10";
 
         [STAThread]
         static void Main()
