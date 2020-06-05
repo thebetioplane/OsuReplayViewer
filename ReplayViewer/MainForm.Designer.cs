@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.playBtn = new System.Windows.Forms.Button();
-            this.editBtn = new System.Windows.Forms.Button();
+            this.dataBtn = new System.Windows.Forms.Button();
             this.timeWindowBar = new System.Windows.Forms.TrackBar();
             this.label1 = new System.Windows.Forms.Label();
             this.timeWindowLabel = new System.Windows.Forms.Label();
@@ -73,8 +73,9 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.axisFlipBtn = new System.Windows.Forms.Button();
             this.axisFlipLabel = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
+            this.coloredPanel = new System.Windows.Forms.Panel();
             this.label5 = new System.Windows.Forms.Label();
+            this.pressBtn = new System.Windows.Forms.Button();
             this.Canvas = new ReplayViewer.Canvas();
             this.timeline = new ReplayViewer.Timeline();
             ((System.ComponentModel.ISupportInitialize)(this.timeWindowBar)).BeginInit();
@@ -95,15 +96,15 @@
             this.playBtn.UseVisualStyleBackColor = true;
             this.playBtn.Click += new System.EventHandler(this.playBtn_Click);
             // 
-            // editBtn
+            // dataBtn
             // 
-            this.editBtn.Location = new System.Drawing.Point(251, 24);
-            this.editBtn.Name = "editBtn";
-            this.editBtn.Size = new System.Drawing.Size(138, 37);
-            this.editBtn.TabIndex = 5;
-            this.editBtn.Text = "Cursor Data";
-            this.editBtn.UseVisualStyleBackColor = true;
-            this.editBtn.Click += new System.EventHandler(this.editBtn_Click);
+            this.dataBtn.Location = new System.Drawing.Point(251, 24);
+            this.dataBtn.Name = "dataBtn";
+            this.dataBtn.Size = new System.Drawing.Size(138, 37);
+            this.dataBtn.TabIndex = 5;
+            this.dataBtn.Text = "Cursor Data";
+            this.dataBtn.UseVisualStyleBackColor = true;
+            this.dataBtn.Click += new System.EventHandler(this.dataBtn_Click);
             // 
             // timeWindowBar
             // 
@@ -391,9 +392,9 @@
             // 
             // label4
             // 
-            this.label4.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.label4.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(923, 95);
+            this.label4.Location = new System.Drawing.Point(896, 95);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(45, 13);
             this.label4.TabIndex = 23;
@@ -401,9 +402,9 @@
             // 
             // volumeBarLabel
             // 
-            this.volumeBarLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.volumeBarLabel.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.volumeBarLabel.AutoSize = true;
-            this.volumeBarLabel.Location = new System.Drawing.Point(965, 94);
+            this.volumeBarLabel.Location = new System.Drawing.Point(938, 94);
             this.volumeBarLabel.Name = "volumeBarLabel";
             this.volumeBarLabel.Size = new System.Drawing.Size(36, 13);
             this.volumeBarLabel.TabIndex = 24;
@@ -414,7 +415,7 @@
             // 
             this.cursorColorPanel.BackColor = System.Drawing.Color.Red;
             this.cursorColorPanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.cursorColorPanel.Location = new System.Drawing.Point(396, 25);
+            this.cursorColorPanel.Location = new System.Drawing.Point(539, 25);
             this.cursorColorPanel.Name = "cursorColorPanel";
             this.cursorColorPanel.Size = new System.Drawing.Size(36, 36);
             this.cursorColorPanel.TabIndex = 25;
@@ -422,7 +423,7 @@
             // replayInfoLabel
             // 
             this.replayInfoLabel.AutoSize = true;
-            this.replayInfoLabel.Location = new System.Drawing.Point(439, 25);
+            this.replayInfoLabel.Location = new System.Drawing.Point(582, 25);
             this.replayInfoLabel.Name = "replayInfoLabel";
             this.replayInfoLabel.Size = new System.Drawing.Size(0, 13);
             this.replayInfoLabel.TabIndex = 26;
@@ -530,22 +531,32 @@
             this.axisFlipLabel.TabIndex = 29;
             this.axisFlipLabel.Text = "Y-Axis Flip";
             // 
-            // panel3
+            // coloredPanel
             // 
-            this.panel3.BackColor = System.Drawing.Color.Red;
-            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.panel3.Location = new System.Drawing.Point(396, 25);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(36, 36);
-            this.panel3.TabIndex = 25;
+            this.coloredPanel.BackColor = System.Drawing.Color.Red;
+            this.coloredPanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.coloredPanel.Location = new System.Drawing.Point(539, 25);
+            this.coloredPanel.Name = "coloredPanel";
+            this.coloredPanel.Size = new System.Drawing.Size(36, 36);
+            this.coloredPanel.TabIndex = 25;
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(439, 25);
+            this.label5.Location = new System.Drawing.Point(582, 25);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(0, 13);
             this.label5.TabIndex = 26;
+            // 
+            // pressBtn
+            // 
+            this.pressBtn.Location = new System.Drawing.Point(395, 24);
+            this.pressBtn.Name = "pressBtn";
+            this.pressBtn.Size = new System.Drawing.Size(138, 37);
+            this.pressBtn.TabIndex = 31;
+            this.pressBtn.Text = "Press Data";
+            this.pressBtn.UseVisualStyleBackColor = true;
+            this.pressBtn.Click += new System.EventHandler(this.pressBtn_Click);
             // 
             // Canvas
             // 
@@ -596,11 +607,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(984, 661);
+            this.Controls.Add(this.pressBtn);
             this.Controls.Add(this.Canvas);
             this.Controls.Add(this.axisFlipBtn);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.replayInfoLabel);
-            this.Controls.Add(this.panel3);
+            this.Controls.Add(this.coloredPanel);
             this.Controls.Add(this.cursorColorPanel);
             this.Controls.Add(this.volumeBarLabel);
             this.Controls.Add(this.label4);
@@ -614,7 +626,7 @@
             this.Controls.Add(this.timeWindowLabel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.timeWindowBar);
-            this.Controls.Add(this.editBtn);
+            this.Controls.Add(this.dataBtn);
             this.Controls.Add(this.playBtn);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.axisFlipLabel);
@@ -642,7 +654,7 @@
 
         private Timeline timeline;
         private System.Windows.Forms.Button playBtn;
-        private System.Windows.Forms.Button editBtn;
+        private System.Windows.Forms.Button dataBtn;
         private System.Windows.Forms.TrackBar timeWindowBar;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label timeWindowLabel;
@@ -686,8 +698,9 @@
         private System.Windows.Forms.Button axisFlipBtn;
         private System.Windows.Forms.Label axisFlipLabel;
         private Canvas Canvas;
-        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Panel coloredPanel;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button pressBtn;
     }
 }
 

@@ -17,6 +17,21 @@ state that it was before the update.
 If you want the program to force an update, delete one of the dlls and
 it should go into a repair mode.
 
+### What is the meaning of the different colors in when viewing "cursor data" and "press data"?
+
+In "cursor data" each cross / plus sign marker indicates a replay frame,
+both movement and mouse and keyboard presses. Cyan means Key1 is pressed
+down, magenta means Key2 is pressed down, green means Mouse1 and yellow
+Mouse2. If more than one button is held it only displays the color of
+one.
+
+In "press data" markers for cursor movement are omitted and only the
+lines are drawn. A yellow marker indicates that a key or mouse button
+was pressed down and was not pressed down previously. A gray marker
+indicates that a key or mouse button was previously held down but got
+released. The point of these is to make it more obvious where osu! would
+register a press and hold.
+
 ### OsuReplayViewer Dec 2019 update
 
 So this project is actually very old and I don't want to touch the

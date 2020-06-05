@@ -13,6 +13,14 @@ namespace ReplayViewer.Curves
         {
             if (this.Points.Count == 3)
             {
+                float area = this.Area(this.Points[0], this.Points[1], this.Points[2]);
+                if (Math.Abs(area) <= 0.001f)
+                {
+                    // this means that the points are very close to (or exactly) collinear and our
+                    // circle drawing algorithm will be unstable
+                    // so we just treat it like a straight line
+                    return Vector2.Lerp(this.Points[0], this.Points[2], t);
+                }
                 // essentially we are just drawing a circle between two angles
                 Vector2 center = this.CircleCenter(this.Points[0], this.Points[1], this.Points[2]);
                 float radius = this.Distance(this.Points[0], center);
@@ -22,7 +30,10 @@ namespace ReplayViewer.Curves
                 float twopi = (float)(2 * Math.PI);
                 // determine which direction the circle should be drawn
                 // we want it so that the curve passes throught all the points
-                if (this.IsClockwise(this.Points[0], this.Points[1], this.Points[2]))
+                // area > 0 is clockwise
+                // the reason why this is backwards from normal is because our Y axis points down,
+                // so we are also experiencing a vertical flip
+                if (area > 0)
                 {
                     while (end < start)
                     {
@@ -69,11 +80,15 @@ namespace ReplayViewer.Curves
             return center;
         }
 
-        private bool IsClockwise(Vector2 a, Vector2 b, Vector2 c)
+        private float Area(Vector2 a, Vector2 b, Vector2 c)
         {
-            // this is a cross product / shoelace formula math thing
-            // just google it, it's what I did
-            return a.X * b.Y - b.X * a.Y + b.X * c.Y - c.X * b.Y + c.X * a.Y - a.X * c.Y > 0;
+            // this is related to the cross product
+            // it's also the determinate of a 3x3 matrix as follows
+            // x0 x1 x2
+            // y0 y1 y2
+            // 1  1  1
+            // where your 3 vectors are represented by (x0, y0), (x1, y1), (x2, y2)
+            return a.X * b.Y - b.X * a.Y + b.X * c.Y - c.X * b.Y + c.X * a.Y - a.X * c.Y;
         }
     }
 }

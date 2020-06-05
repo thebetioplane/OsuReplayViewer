@@ -114,7 +114,11 @@ namespace ReplayViewer
             }
             else if (keyData == Keys.W)
             {
-                this.editBtn_Click(null, null);
+                this.dataBtn_Click(null, null);
+            }
+            else if (keyData == Keys.E)
+            {
+                this.pressBtn_Click(null, null);
             }
             else if (keyData == Keys.D1)
             {
@@ -357,9 +361,14 @@ namespace ReplayViewer
             this.Canvas.State_PlaybackMode = 1;
         }
 
-        private void editBtn_Click(object sender, EventArgs e)
+        private void dataBtn_Click(object sender, EventArgs e)
         {
             this.Canvas.State_PlaybackMode = 0;
+        }
+
+        private void pressBtn_Click(object sender, EventArgs e)
+        {
+            this.Canvas.State_PlaybackMode = 2;
         }
 
         private void timeWindowBar_Scroll(object sender, EventArgs e)
@@ -526,6 +535,7 @@ namespace ReplayViewer
         public void UpdateReplayRadio(byte value)
         {
             this.GetReplayRadioBtn(value).Checked = true;
+            this.coloredPanel.BackColor = System.Drawing.Color.FromArgb(Canvas.Color_Cursor[value].ToArgb());
         }
 
         private void unloadBtn_Click(object sender, EventArgs e)

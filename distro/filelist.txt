@@ -1,4 +1,4 @@
-2019MMDD00
+YYYYMMDD00
 ReplayViewer.exe
 ManagedBass.Fx.dll
 ManagedBass.dll

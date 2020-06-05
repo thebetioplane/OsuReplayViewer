@@ -18,14 +18,7 @@ namespace BMAPI.v1.HitObjects
             get { return this._PixelLength; }
             set { this._PixelLength = value; }
         }
-        private float _TotalLength = -1;
-        public float TotalLength
-        {
-            get
-            {
-                return this._TotalLength;
-            }
-        }
+        public float TotalLength { get; private set; } = -1;
         private float _SegmentEndTime = -1;
         public float SegmentEndTime
         {
@@ -66,21 +59,21 @@ namespace BMAPI.v1.HitObjects
                 currentCurve.AddPoint(this.Points[i].ToVector2());
                 lastPoint = this.Points[i];
             }
-            this._TotalLength = 0;
+            this.TotalLength = 0;
             int lastIndex = this.Curves.Count - 1;
             for (int i = 0; i < lastIndex; i++)
             {
                 this.Curves[i].Init();
-                this._TotalLength += this.Curves[i].Length;
+                this.TotalLength += this.Curves[i].Length;
             }
             if (lastIndex >= 0)
             {
                 // the last curve will be affected by the 'pixel length' property of sliders which
                 // limit how long it is (so that way it ends in time with the beat, not geometrically)
                 Curve lastCurve = this.Curves[lastIndex];
-                lastCurve.PixelLength = this.PixelLength - this._TotalLength;
+                lastCurve.PixelLength = this.PixelLength - this.TotalLength;
                 lastCurve.Init();
-                this._TotalLength += lastCurve.Length;
+                this.TotalLength += lastCurve.Length;
             }
         }
 

@@ -35,50 +35,40 @@ namespace ReplayViewer.Curves
         {
             this.Points.Add(point);
         }
-
-        private float _Length = -1;
-        public float Length
-        {
-            get
-            {
-                return this._Length;
-            }
-        }
+        public float Length { get; private set; } = -1;
 
         // takes a number from 0.0 to 1.0 that represents the position on the curve
         // this does not act in a linear manner
         // i.e. from 0.00 to 0.25 is probably not the same distance as 0.25 to 0.50
         protected abstract Vector2 Interpolate(float t);
 
-        private float CalculateLength(float prec = 0.01f)
+        private float CalculateLength()
         {
+            if (this.Points.Count <= 1)
+                return 0.0f;
             float sum = 0;
-            for (float f = 0; f < 1f; f += prec)
+            this.AddDistanceTime(0.0f, 0.0f, this.Interpolate(0.0f));
+            for (int i = 1; i < 200; ++i)
             {
-                if (f > 1)
+                float t = i / 200.0f;
+                Vector2 v = this.Interpolate(t);
+                DistanceTime lastDT = this.CurveSnapshots[i - 1];
+                float distance = this.Distance(lastDT.point, v);
+                sum += distance;
+                // take a snapshot of the current position, t value, and distance along the curve
+                if (this.PixelLength > 0 && sum <= this.PixelLength)
                 {
-                    f = 1;
-                }
-                float fplus = f + prec;
-                if (fplus > 1)
-                {
-                    fplus = 1;
-                }
-                Vector2 a = this.Interpolate(f);
-                Vector2 b = this.Interpolate(fplus);
-                float distance = this.Distance(a, b);
-                if (sum == 0 || (this.PixelLength > 0 && distance + sum <= this.PixelLength))
-                {
-                    sum += distance;
-                    // take a snapshot of the current position, t value, and distance along the curve
-                    this.AddDistanceTime(sum, f, b);
+                    this.AddDistanceTime(sum, t, v);
                 }
                 else
                 {
                     break;
                 }
             }
-            return sum;
+            if (this.PixelLength > 0 && this.PixelLength < sum)
+                return this.PixelLength;
+            else
+                return sum;
         }
 
         private void AddDistanceTime(float distance, float time, Vector2 point)
@@ -92,7 +82,7 @@ namespace ReplayViewer.Curves
 
         public void Init()
         {
-            this._Length = this.CalculateLength();
+            this.Length = this.CalculateLength();
         }
 
         protected Vector2 Lerp(Vector2 a, Vector2 b, float t)

@@ -130,6 +130,13 @@ namespace BMAPI.v1
                     Parse(beatmapFile);
                 }
             }
+            foreach (var obj in this.HitObjects)
+            {
+                if (obj.Type.HasFlag(HitObjectType.Slider))
+                {
+                    var slider = (SliderObject)obj;
+                }
+            }
         }
 
         private void Parse(string bm)
