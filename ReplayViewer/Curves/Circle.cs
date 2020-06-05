@@ -14,7 +14,7 @@ namespace ReplayViewer.Curves
             if (this.Points.Count == 3)
             {
                 float area = this.Area(this.Points[0], this.Points[1], this.Points[2]);
-                if (Math.Abs(area) <= 0.001f)
+                if (Math.Abs(area) <= 0.01f)
                 {
                     // this means that the points are very close to (or exactly) collinear and our
                     // circle drawing algorithm will be unstable
@@ -56,28 +56,43 @@ namespace ReplayViewer.Curves
                 return Vector2.Zero;
             }
         }
-
-        private Vector2 CircleCenter(Vector2 A, Vector2 B, Vector2 C)
+        /// <summary>
+        /// finds center of circle from three points on it's edge
+        /// </summary>
+        /// <param name="p0"></param>
+        /// <param name="p1"></param>
+        /// <param name="p2"></param>
+        /// <returns></returns>
+        private Vector2 CircleCenter(Vector2 p0, Vector2 p1, Vector2 p2)
         {
-            // finds the point of a circle from three points on it's edges
-            float yDelta_a = B.Y - A.Y;
-            float xDelta_a = B.X - A.X;
-            float yDelta_b = C.Y - B.Y;
-            float xDelta_b = C.X - B.X;
-            Vector2 center = new Vector2();
-            if (xDelta_a == 0)
-            {
-                xDelta_a = 0.00001f;
-            }
-            if (xDelta_b == 0)
-            {
-                xDelta_b = 0.00001f;
-            }
-            float aSlope = yDelta_a / xDelta_a;
-            float bSlope = yDelta_b / xDelta_b;
-            center.X = (aSlope * bSlope * (A.Y - C.Y) + bSlope * (A.X + B.X) - aSlope * (B.X + C.X)) / (2 * (bSlope - aSlope));
-            center.Y = -1 * (center.X - (A.X + B.X) / 2) / aSlope + (A.Y + B.Y) / 2;
-            return center;
+            // form is (x^2 + y^2) + Bx + Cy + D = 0
+            // see: http://ambrsoft.com/TrigoCalc/Circle3D.htm
+            // mirror: https://i.imgur.com/1OACqKx.png
+            float w0 = p0.LengthSquared;
+            float w1 = p1.LengthSquared;
+            float w2 = p2.LengthSquared;
+            float A = Det31(p0.X, p0.Y, p1.X, p1.Y, p2.X, p2.Y);
+            float B = -Det31(w0, p0.Y, w1, p1.Y, w2, p2.Y);
+            float C = Det31(w0, p0.X, w1, p1.X, w2, p2.X);
+            float scale = -1 / (2.0f * A);
+            return new Vector2(B * scale, C * scale);
+        }
+        /// <summary>
+        /// Special case of 3x3 determinate when the last column is ones
+        /// v0 u0 1
+        /// v1 u1 1
+        /// v2 u2 1
+        /// </summary>
+        /// <param name="v0">row 1, col 1</param>
+        /// <param name="u0">row 1, col 2</param>
+        /// <param name="v1">row 2, col 1</param>
+        /// <param name="u1">row 2, col 2</param>
+        /// <param name="v2">row 3, col 1</param>
+        /// <param name="u2">row 3, col 2</param>
+        /// <returns></returns>
+        private float Det31(float v0, float u0, float v1, float u1, float v2, float u2)
+        {
+			return v0 * (u1 - u2) - u0 * (v1 - v2) + v1 * u2 - v2 * u1;
         }
 
         private float Area(Vector2 a, Vector2 b, Vector2 c)
