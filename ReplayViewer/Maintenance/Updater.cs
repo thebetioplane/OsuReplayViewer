@@ -30,11 +30,9 @@ namespace ReplayViewer.Maintenance
 
         private void Go()
         {
-            bool shouldCheckHashes = false;
             if (! File.Exists(LOCAL_MFILE))
             {
                 GetFile("manifest");
-                shouldCheckHashes = true;
             }
             if (! Directory.Exists("img"))
             {
@@ -43,27 +41,21 @@ namespace ReplayViewer.Maintenance
             ManifestFile localM = new ManifestFile(File.ReadAllBytes(LOCAL_MFILE));
             ManifestFile webM = new ManifestFile(GetData("manifest"));
             Console.WriteLine("local version {0}, web version {1}", localM.Version, webM.Version);
-            if (localM.Version != webM.Version)
-                shouldCheckHashes = true;
+            bool gotAtLeastOneFile = false;
             foreach (FileEntry ent in localM.Files)
             {
-                if (!File.Exists(ent.Key))
-                {
-                    shouldCheckHashes = true;
-                }
                 File.Delete(ent.Key + ".swp");
-            }
-            if (!shouldCheckHashes)
-                return;
-            foreach (FileEntry ent in localM.Files)
-            {
                 if (! File.Exists(ent.Key) || ent.Value.CompareTo(ComputeHash(ent.Key)) != 0)
                 {
+                    gotAtLeastOneFile = true;
                     GetFile(ent.Key);
                 }
             }
-            webM.SaveAs(LOCAL_MFILE);
-            System.Windows.Forms.MessageBox.Show("A new version of OsuReplayViewer has been downloaded. Close and reopen the program to take effect.", "new update downloaded");
+            if (gotAtLeastOneFile)
+            {
+                webM.SaveAs(LOCAL_MFILE);
+                System.Windows.Forms.MessageBox.Show("A new version of OsuReplayViewer has been downloaded. Close and reopen the program to take effect.", "new update downloaded");
+            }
         }
 
         private MD5Hash ComputeHash(string fname)
