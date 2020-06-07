@@ -17,7 +17,20 @@ state that it was before the update.
 If you want the program to force an update, delete one of the dlls and
 it should go into a repair mode.
 
-### What is the meaning of the different colors in when viewing "cursor data" and "press data"?
+If you want the program to not check for updates, put a file called
+"no-update" in the same place the .exe is. This however does not stop
+the repair mode that happens if one of the required dlls is missing.
+
+### Check if you have the latest version
+
+When you first launch the program it will say the build in the title
+bar.
+
+The current version is:
+
+2020-06-07 no. 2 (legacy)
+
+### What is the meaning of the different colors when viewing "cursor data" and "press data"?
 
 In "cursor data" each cross / plus sign marker indicates a replay frame,
 both movement and mouse and keyboard presses. Cyan means Key1 is pressed

@@ -45,6 +45,9 @@ namespace ReplayViewer.Maintenance
             foreach (FileEntry ent in localM.Files)
             {
                 File.Delete(ent.Key + ".swp");
+            }
+            foreach (FileEntry ent in webM.Files)
+            {
                 if (! File.Exists(ent.Key) || ent.Value.CompareTo(ComputeHash(ent.Key)) != 0)
                 {
                     gotAtLeastOneFile = true;
