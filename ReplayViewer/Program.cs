@@ -11,14 +11,14 @@ namespace ReplayViewer
         [DllImport("user32.dll")]
         private static extern bool SetProcessDPIAware();
         private static bool shouldCheckUpdate = true;
-        public const string BUILD_DATE = "2020-06-05";
+        public const string BUILD_DATE = "JUNE 2020";
 
         [STAThread]
         static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             if (File.Exists("no-update"))
-                shouldCheckUpdate = true;
+                shouldCheckUpdate = false;
             if (ShouldRepair())
             {
                 if (!DoRepair())

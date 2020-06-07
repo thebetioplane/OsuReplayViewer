@@ -573,7 +573,6 @@
             this.Canvas.ShowHelp = ((byte)(0));
             this.Canvas.Size = new System.Drawing.Size(773, 532);
             this.Canvas.State_CurveSmoothness = 0;
-            this.Canvas.State_FadeTime = 0;
             this.Canvas.State_PlaybackFlow = ((byte)(0));
             this.Canvas.State_PlaybackMode = ((byte)(0));
             this.Canvas.State_PlaybackSpeed = 0F;
@@ -581,12 +580,6 @@
             this.Canvas.State_TimeRange = 0;
             this.Canvas.State_Volume = 0F;
             this.Canvas.TabIndex = 30;
-            this.Canvas.Visual_BeatmapAR = 0F;
-            this.Canvas.Visual_BeatmapCS = 0F;
-            this.Canvas.Visual_EasyAR = false;
-            this.Canvas.Visual_EasyCS = false;
-            this.Canvas.Visual_HardRockAR = false;
-            this.Canvas.Visual_HardRockCS = false;
             this.Canvas.Visual_MapInvert = false;
             this.Canvas.VSync = false;
             // 

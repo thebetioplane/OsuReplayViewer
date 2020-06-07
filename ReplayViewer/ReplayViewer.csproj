@@ -99,6 +99,7 @@
     <Compile Include="Curves\Circle.cs" />
     <Compile Include="Curves\Curve.cs" />
     <Compile Include="Curves\Line.cs" />
+    <Compile Include="Shader.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

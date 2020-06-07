@@ -18,6 +18,8 @@ namespace ReplayViewer.Curves
         protected List<Vector2> Points;
         // points along the curve where segment length, 't' interpolation value, and location is recorded
         protected List<DistanceTime> CurveSnapshots;
+        // points used for drawing
+        public List<Vector2> DrawingPoints { get; private set; }
         // when the curve should stop being drawn
         // this only applies if this is the last curve in the slider
         public float PixelLength { get; set; }
@@ -26,7 +28,6 @@ namespace ReplayViewer.Curves
         {
             this.CurveType = sliderType;
             this.Points = new List<Vector2>();
-            this.CurveSnapshots = new List<DistanceTime>();
             // unless the SliderObject wants the length to be limited, then we have no limit
             this.PixelLength = Single.PositiveInfinity;
         }
@@ -44,13 +45,14 @@ namespace ReplayViewer.Curves
 
         private float CalculateLength()
         {
+            this.CurveSnapshots = new List<DistanceTime>();
             if (this.Points.Count <= 1)
                 return 0.0f;
             float sum = 0;
             this.AddDistanceTime(0.0f, 0.0f, this.Interpolate(0.0f));
-            for (int i = 1; i < 200; ++i)
+            for (int i = 1; i < 150; ++i)
             {
-                float t = i / 200.0f;
+                float t = i / 150.0f;
                 Vector2 v = this.Interpolate(t);
                 DistanceTime lastDT = this.CurveSnapshots[i - 1];
                 float distance = this.Distance(lastDT.point, v);
@@ -80,9 +82,34 @@ namespace ReplayViewer.Curves
             this.CurveSnapshots.Add(dt);
         }
 
+        private bool Colinear(Vector2 a, Vector2 b, Vector2 c)
+        {
+            float area = a.X * (b.Y - c.Y) - b.X * (a.Y - c.Y) + c.X * (a.Y - b.Y);
+            return Math.Abs(area) < 1.0f;
+        }
+
         public void Init()
         {
             this.Length = this.CalculateLength();
+            this.DrawingPoints = new List<Vector2>();
+            const float step = 10.0f;
+            this.DrawingPoints.Add(this.PositionAtDistance(0.0f));
+            if (step < this.Length)
+            {
+                this.DrawingPoints.Add(this.PositionAtDistance(step));
+                for (float pos = step * 2.0f; pos < this.Length; pos += 10.0f)
+                {
+                    Vector2 v0 = this.DrawingPoints[this.DrawingPoints.Count - 2];
+                    Vector2 v1 = this.DrawingPoints[this.DrawingPoints.Count - 1];
+                    Vector2 v2 = this.PositionAtDistance(pos);
+                    if (Colinear(v0, v1, v2))
+                    {
+                        this.DrawingPoints.RemoveAt(this.DrawingPoints.Count - 1);
+                    }
+                    this.DrawingPoints.Add(v2);
+                }
+            }
+            this.DrawingPoints.Add(this.CurveSnapshots[this.CurveSnapshots.Count - 1].point);
         }
 
         protected Vector2 Lerp(Vector2 a, Vector2 b, float t)

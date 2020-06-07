@@ -3,8 +3,9 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
+using Color4 = OpenTK.Graphics.Color4;
+using OpenTK.Graphics.ES20;
+using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 
 namespace ReplayViewer
 {
@@ -25,8 +26,8 @@ namespace ReplayViewer
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
                 BitmapData data = bitmap.LockBits(new Rectangle(0, 0, this.Width, this.Height), ImageLockMode.ReadOnly,
                     System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-                    OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, data.Width, data.Height, 0,
+                    PixelFormat.Rgba, PixelType.UnsignedByte, data.Scan0);
                 bitmap.UnlockBits(data);
             }
             stream.Dispose();
@@ -34,6 +35,7 @@ namespace ReplayViewer
 
         public void Draw(Vector2 pos, Vector2 origin, Color4 color)
         {
+            /*
             pos -= origin;
             GL.Color4(color);
             GL.MatrixMode(MatrixMode.Modelview);
@@ -49,9 +51,11 @@ namespace ReplayViewer
             GL.TexCoord2(0.0f, 1.0f);
             GL.Vertex2(pos.X, pos.Y + this.Height);
             GL.End();
+            */
         }
         public void Draw(Vector2 pos, float w, float h, Vector2 origin, Color4 color)
         {
+            /*
             pos -= origin;
             GL.Color4(color);
             GL.MatrixMode(MatrixMode.Modelview);
@@ -67,9 +71,11 @@ namespace ReplayViewer
             GL.TexCoord2(0.0f, 1.0f);
             GL.Vertex2(pos.X, pos.Y + h);
             GL.End();
+            */
         }
         public void Draw(Vector2 pos, Vector2 origin, Color4 color, float rotation, float scale)
         {
+            /*
             pos -= origin;
             GL.Color4(color);
             GL.MatrixMode(MatrixMode.Modelview);
@@ -93,9 +99,11 @@ namespace ReplayViewer
             GL.TexCoord2(0.0f, 1.0f);
             GL.Vertex2(pos.X, pos.Y + this.Height);
             GL.End();
+            */
         }
         public void Draw(Vector2 pos, Vector2 origin, Color4 color, Rectangle source, float rotation, float scale)
         {
+            /*
             pos -= origin;
             Vector2 texCoordMin = new Vector2(source.X / (float)this.Width, source.Y / (float)this.Height);
             Vector2 texCoordMax = new Vector2((source.X + source.Width) / (float)this.Width, (source.Y + source.Height) / (float)this.Height);
@@ -121,6 +129,7 @@ namespace ReplayViewer
             GL.TexCoord2(texCoordMin.X, texCoordMax.Y);
             GL.Vertex2(pos.X, pos.Y + source.Height);
             GL.End();
+            */
         }
         public void Dispose()
         {

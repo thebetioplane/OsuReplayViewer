@@ -4,7 +4,7 @@ using OpenTK;
 using OpenTK.Input;
 using Rectangle = System.Drawing.Rectangle;
 using Color = OpenTK.Graphics.Color4;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.ES20;
 using System.Windows.Forms;
 using System.IO;
 
@@ -22,8 +22,6 @@ namespace ReplayViewer
         private List<List<ReplayAPI.ReplayFrame>> nearbyFrames;
         private List<BMAPI.v1.HitObjects.CircleObject> nearbyHitObjects;
         public BMAPI.v1.Beatmap Beatmap { get; set; }
-        private int approachRate = 0;
-        private int circleDiameter = 0;
 
         public int State_TimeRange { get; set; }
         public int State_CurveSmoothness { get; set; }
@@ -60,19 +58,14 @@ namespace ReplayViewer
         }
         public byte State_PlaybackMode { get; set; }
         public byte State_PlaybackFlow { get; set; }
-        public int State_FadeTime { get; set; }
 
-        public float Visual_BeatmapAR { get; set; }
-        public bool Visual_HardRockAR { get; set; }
-        public bool Visual_EasyAR { get; set; }
-        public float Visual_BeatmapCS { get; set; }
-        public bool Visual_HardRockCS { get; set; }
-        public bool Visual_EasyCS { get; set; }
         public bool Visual_MapInvert { get; set; }
 
         private float state_PlaybackSpeed;
         private byte state_ReplaySelected;
         private float state_volume;
+        private float AnimationStartOffset;
+        private float AnimationEndOffset;
 
         private Texture2D nodeTexture;
         private Texture2D cursorTexture;
@@ -84,6 +77,8 @@ namespace ReplayViewer
         private Texture2D sliderEdgeTexture;
         private Texture2D sliderBodyTexture;
         private Texture2D reverseArrowTexture;
+
+        private Shader shader;
 
         public Canvas()
             : base()
@@ -100,6 +95,7 @@ namespace ReplayViewer
             {
                 this.Draw(i);
             }
+            //shader.Draw();
             this.SwapBuffers();
             System.Threading.Thread.Sleep(16);
             this.Resize += Canvas_Resize;
@@ -109,6 +105,10 @@ namespace ReplayViewer
         {
             int w = this.Size.Width;
             int h = this.Size.Height;
+            if (w < 5)
+                w = 5;
+            if (h < 5)
+                h = 5;
             int x = 0;
             int y = 0;
             if (w * 3 / 4 > h)
@@ -153,13 +153,7 @@ namespace ReplayViewer
             this.State_ReplaySelected = 0;
             this.State_PlaybackMode = 0;
             this.State_PlaybackFlow = 0;
-            this.State_FadeTime = 200;
 
-            this.Visual_BeatmapAR = 0.0f;
-            this.Visual_HardRockAR = false;
-            this.Visual_HardRockCS = false;
-            this.Visual_EasyAR = false;
-            this.Visual_EasyCS = false;
             this.Visual_MapInvert = false;
 
             this.nodeTexture = this.TextureFromFile(MainForm.Path_Img_EditorNode);
@@ -173,16 +167,21 @@ namespace ReplayViewer
             this.sliderBodyTexture = this.TextureFromFile(MainForm.Path_Img_SliderBody);
             this.reverseArrowTexture = this.TextureFromFile(MainForm.Path_Img_ReverseArrow);
 
-            GL.Enable(EnableCap.Texture2D);
+            try
+            {
+                this.shader = new Shader();
+            }
+            catch (FileNotFoundException e)
+            {
+                MainForm.ErrorMessage(string.Format("Cannot load the shader found at \"{0}\".\nDeleting the \"manifest\" file will restore lost files and update new ones.", e.FileName));
+                throw e;
+            }
+
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.AlphaTest);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
             this.Canvas_Resize(this, null);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            Vector2 border = new Vector2(4.0f, 3.0f) * 32.0f;
-            GL.Ortho(-border.X, 512.0 + border.X, 384.0 + border.Y, -border.Y, 0.0, 1.0);
             GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit);
         }
@@ -195,7 +194,7 @@ namespace ReplayViewer
             }
             catch
             {
-                MainForm.ErrorMessage(String.Format("Could not the load the image found at \"{0}\", please make sure it exists and is a valid .png image.\nRedownloading the .zip file will also restore lost images and update new ones.", path));
+                MainForm.ErrorMessage(String.Format("Could not the load the image found at \"{0}\", please make sure it exists and is a valid .png image.\nDeleting the \"manifest\" file will restore lost images and update new ones.", path));
                 return null;
             }
         }
@@ -315,120 +314,58 @@ namespace ReplayViewer
             }
         }
 
-        private void MulFlipMatrix()
-        {
-            double[] flipMatrix = {
-                1.0, 0.0, 0.0, 0.0,
-                0.0, -1.0, 0.0, 384.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
-            };
-            GL.MultTransposeMatrix(flipMatrix);
-        }
-
         /// <summary>
         /// draw
         /// </summary>
-        /// <param name="backgroundLayer">0 -> background, 1 -> middle, 2 -> foreground</param>
-        private void Draw(int backgroundLayer)
+        /// <param name="backgroundLevel">0 -> background (slider body), 1 -> middle (hitcircle), 2 -> foreground (approach circle)</param>
+        private void Draw(int backgroundLevel)
         {
-            if (this.Visual_MapInvert)
-            {
-                GL.MatrixMode(MatrixMode.Projection);
-                GL.PushMatrix();
-                this.MulFlipMatrix();
-            }
+            shader.CurrentTime = (float)this.songPlayer.SongTime;
             for (int b = this.nearbyHitObjects.Count - 1; b >= 0; b--)
             {
-                BMAPI.v1.HitObjects.CircleObject hitObject = this.nearbyHitObjects[b];
-                // the song time relative to the hitobject start time
-                float diff = (float)(hitObject.StartTime - this.songPlayer.SongTime);
-                // transparency of hitobject 
-                float alpha = 1.0f;
-                // a percentage of how open a slider is, 1.0 is closed, 0.0 is open
-                float approachCircleValue = 0.0f;
-                // length in time of hit object (only applies to sliders and spinners)
-                int hitObjectLength = 0;
-                // Use these types if the hitobject is a slider or spinner
-                BMAPI.v1.HitObjects.SliderObject hitObjectAsSlider = null;
-                BMAPI.v1.HitObjects.SpinnerObject hitObjectAsSpinner = null;
-                if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner))
+                var hitObject = this.nearbyHitObjects[b];
+                bool isSlider = hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Slider);
+                bool isSpinner = hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner);
+                shader.Center = hitObject.Location.ToVector2();
+                shader.StartTime = hitObject.StartTime;
+                if (isSlider)
                 {
-                    hitObjectAsSpinner = (BMAPI.v1.HitObjects.SpinnerObject)hitObject;
-                    hitObjectLength = (int)(hitObjectAsSpinner.EndTime - hitObjectAsSpinner.StartTime);
-                }
-                else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Slider))
-                {
-                    hitObjectAsSlider = (BMAPI.v1.HitObjects.SliderObject)hitObject;
-                    hitObjectLength = (int)((hitObjectAsSlider.SegmentEndTime - hitObjectAsSlider.StartTime) * hitObjectAsSlider.RepeatCount);
-                    //hitObjectLength = 500;
-                }
-                // for reference: this.approachRate is the time in ms it takes for approach circle to close
-                if (diff < this.approachRate + this.State_FadeTime && diff > -(hitObjectLength + this.State_FadeTime))
-                {
-                    if (diff < -hitObjectLength)
+                    var slider = hitObject as BMAPI.v1.HitObjects.SliderObject;
+                    shader.EndTime = slider.SegmentEndTime + (slider.SegmentEndTime - slider.StartTime) * slider.RepeatCount;
+                    if (backgroundLevel == 1)
                     {
-                        // fade out
-                        alpha = 1 - ((diff + hitObjectLength) / -(float)this.State_FadeTime);
+                        shader.Mode = 1;
+                        shader.Draw();
                     }
-                    else if (!hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner) && diff >= this.approachRate && diff < this.approachRate + this.State_FadeTime)
+                    else if (backgroundLevel == 0)
                     {
-                        // fade in
-                        alpha = 1 - (diff - this.approachRate) / (float)this.State_FadeTime;
-                    }
-                    else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner))
-                    {
-                        // because spinners don't have an approach circle before they appear
-                        if (diff >= 0 && diff < this.State_FadeTime)
+                        shader.Mode = 2;
+                        foreach (var curve in slider.Curves)
                         {
-                            alpha = 1 - diff / (float)this.State_FadeTime;
-                        }
-                        else if (diff > 0)
-                        {
-                            alpha = 0;
-                        }
-                    }
-                    if (diff < this.approachRate + this.State_FadeTime && diff > 0)
-                    {
-                        // hitcircle percentage from open to closed
-                        approachCircleValue = diff / (float)(this.approachRate + this.State_FadeTime);
-                    }
-                    else if (diff > 0)
-                    {
-                        approachCircleValue = 1.0f;
-                    }
-                    if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Circle))
-                    {
-                        if (backgroundLayer == 1)
-                            this.DrawHitcircle(hitObject, alpha);
-                        else if (backgroundLayer == 2)
-                            this.DrawApproachCircle(hitObject, alpha, approachCircleValue);
-                    }
-                    else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Slider))
-                    {
-                        this.DrawSlider(hitObjectAsSlider, alpha, approachCircleValue, backgroundLayer);
-                    }
-                    else if (hitObject.Type.HasFlag(BMAPI.v1.HitObjectType.Spinner))
-                    {
-                        if (backgroundLayer == 1)
-                        {
-                            this.DrawSpinner(hitObjectAsSpinner, alpha);
-                        }
-                        else if (backgroundLayer == 2)
-                        {
-                            this.DrawSpinnerApproachCircle(hitObjectAsSpinner, alpha, (float)(this.songPlayer.SongTime - hitObjectAsSpinner.StartTime) / (hitObjectAsSpinner.EndTime - hitObjectAsSpinner.StartTime));
+                            for (int i = 1; i < curve.DrawingPoints.Count; ++i)
+                            {
+                                shader.OffCenter = curve.DrawingPoints[i - 1];
+                                shader.Center = curve.DrawingPoints[i];
+                                shader.Draw();
+                            }
                         }
                     }
                 }
-            }
-            if (this.Visual_MapInvert)
-            {
-                GL.MatrixMode(MatrixMode.Projection);
-                GL.PopMatrix();
-            }
-            if (backgroundLayer == 2)
-            {
-                bool forceFlip = false;
+                else if (isSpinner)
+                {
+                    var spinner = hitObject as BMAPI.v1.HitObjects.SpinnerObject;
+                    shader.EndTime = spinner.EndTime;
+                }
+                else
+                {
+                    shader.EndTime = shader.StartTime;
+                    if (backgroundLevel == 1)
+                    {
+                        shader.Mode = 1;
+                        shader.Draw();
+                    }
+                }
+#if RENDER_CURSOR
                 if (this.State_PlaybackMode == 0)
                 {
                     if (MainForm.self.CurrentReplays[this.State_ReplaySelected] != null)
@@ -437,9 +374,11 @@ namespace ReplayViewer
                     }
                     if (forceFlip)
                     {
+                        /*
                         GL.MatrixMode(MatrixMode.Projection);
                         GL.PushMatrix();
                         this.MulFlipMatrix();
+                        */
                     }
                     Vector2 currentPos = Vector2.Zero;
                     Vector2 lastPos = new Vector2(-222, 0);
@@ -474,8 +413,10 @@ namespace ReplayViewer
                     }
                     if (forceFlip)
                     {
+                        /*
                         GL.MatrixMode(MatrixMode.Projection);
                         GL.PopMatrix();
+                        */
                     }
                 }
                 if (this.State_PlaybackMode == 2 && this.nearbyFrames.Count > 2)
@@ -486,9 +427,11 @@ namespace ReplayViewer
                     }
                     if (forceFlip)
                     {
+                        /*
                         GL.MatrixMode(MatrixMode.Projection);
                         GL.PushMatrix();
                         this.MulFlipMatrix();
+                        */
                     }
                     for (int i = 1; i < this.nearbyFrames[this.state_ReplaySelected].Count; i++)
                     {
@@ -526,8 +469,10 @@ namespace ReplayViewer
                     }
                     if (forceFlip)
                     {
+                        /*
                         GL.MatrixMode(MatrixMode.Projection);
                         GL.PopMatrix();
+                        */
                     }
                 }
                 else if (this.State_PlaybackMode == 1)
@@ -539,23 +484,29 @@ namespace ReplayViewer
                             forceFlip = MainForm.self.CurrentReplays[i].AxisFlip;
                             if (forceFlip)
                             {
+                                /*
                                 GL.MatrixMode(MatrixMode.Projection);
                                 GL.PushMatrix();
                                 this.MulFlipMatrix();
+                                */
                             }
                             Vector2 cursorPos = this.GetInterpolatedFrame(i);
                             float diameter = 32.0f;
                             this.cursorTexture.Draw(cursorPos, diameter, diameter, new Vector2(diameter * 0.5f), Canvas.Color_Cursor[i]);
                             if (forceFlip)
                             {
+                                /*
                                 GL.MatrixMode(MatrixMode.Projection);
                                 GL.PopMatrix();
+                                */
                             }
                         }
                     }
                 }
+#endif
                 if (this.ShowHelp != 0)
                 {
+                    /*
                     GL.MatrixMode(MatrixMode.Projection);
                     GL.PushMatrix();
                     GL.LoadIdentity();
@@ -563,6 +514,7 @@ namespace ReplayViewer
                     this.helpTexture.Draw(Vector2.Zero, 1.0f, 1.0f, Vector2.Zero, Color.White);
                     GL.MatrixMode(MatrixMode.Projection);
                     GL.PopMatrix();
+                    */
                 }
             }
         }
@@ -610,7 +562,7 @@ namespace ReplayViewer
                     var slider = (BMAPI.v1.HitObjects.SliderObject)hitObject;
                     endTime = slider.SegmentEndTime + (slider.SegmentEndTime - slider.StartTime)*slider.RepeatCount;
                 }
-                float animationEnd = endTime + this.State_FadeTime;
+                float animationEnd = endTime + this.AnimationEndOffset;
                 if (animationEnd < target)
                 {
                     first = ++it;
@@ -633,7 +585,7 @@ namespace ReplayViewer
             {
                 int step = count / 2;
                 int it = first + step;
-                float animationStart = this.Beatmap.HitObjects[it].StartTime - this.approachRate - this.State_FadeTime;
+                float animationStart = this.Beatmap.HitObjects[it].StartTime - this.AnimationStartOffset;
                 if (!(target < animationStart))
                 {
                     first = ++it;
@@ -647,35 +599,9 @@ namespace ReplayViewer
             return first;
         }
 
-        private int BinarySearchHitObjects_old(float target)
-        {
-            if (this.Beatmap == null)
-            {
-                return -1;
-            }
-            int high = this.Beatmap.HitObjects.Count - 1;
-            int low = 0;
-            while (low <= high)
-            {
-                int mid = (high + low) / 2;
-                if (mid == high || mid == low)
-                {
-                    return mid;
-                }
-                else if (this.Beatmap.HitObjects[mid].StartTime > target)
-                {
-                    high = mid;
-                }
-                else
-                {
-                    low = mid;
-                }
-            }
-            return 0;
-        }
-
         private void DrawLine(Vector2 start, Vector2 end, Color color)
         {
+            /*
             GL.Disable(EnableCap.Texture2D);
             GL.Color4(color);
             GL.Begin(PrimitiveType.Lines);
@@ -683,208 +609,7 @@ namespace ReplayViewer
             GL.Vertex2(end.X, end.Y);
             GL.End();
             GL.Enable(EnableCap.Texture2D);
-        }
-
-        private void DrawHitcircle(BMAPI.v1.HitObjects.CircleObject hitObject, float alpha)
-        {
-            Vector2 pos = hitObject.Location.ToVector2();
-            this.DrawHitcircle(pos, this.circleDiameter, alpha);
-        }
-
-        private void DrawHitcircle(Vector2 pos, int diameter, float alpha)
-        {
-            this.hitCircleTexture.Draw(pos, diameter, diameter, new Vector2(diameter*0.5f), new Color(1.0f, 1.0f, 1.0f, alpha));
-        }
-
-        private void DrawApproachCircle(BMAPI.v1.HitObjects.CircleObject hitObject, float alpha, float value)
-        {
-            float smallDiameter = this.circleDiameter;
-            float largeDiameter = smallDiameter * 3.0f;
-            // linearly interpolate between two diameters
-            // makes approach circle shrink
-            int diameter = (int)(smallDiameter + (largeDiameter - smallDiameter) * value);
-            Vector2 pos = new Vector2(hitObject.Location.X, hitObject.Location.Y);
-            this.approachCircleTexture.Draw(pos, diameter, diameter, new Vector2(diameter * 0.5f), new Color(1.0f, 1.0f, 1.0f, alpha));
-        }
-
-        private void DrawSpinnerApproachCircle(BMAPI.v1.HitObjects.SpinnerObject hitObject, float alpha, float value)
-        {
-            if (value < 0)
-            {
-                value = 0;
-            }
-            else if (value > 1)
-            {
-                value = 1;
-            }
-            int diameter = (int)(384.0f * (1 - value));
-            Vector2 pos = new Vector2(hitObject.Location.X, hitObject.Location.Y);
-            this.spinnerTexture.Draw(pos, diameter, diameter, new Vector2(diameter * 0.5f), new Color(1.0f, 1.0f, 1.0f, alpha));
-        }
-
-        private void DrawSpinner(BMAPI.v1.HitObjects.SpinnerObject hitObject, float alpha)
-        {
-            float diameter = 384;
-            Vector2 pos = new Vector2(hitObject.Location.X, hitObject.Location.Y);
-            this.spinnerTexture.Draw(pos, diameter, diameter, new Vector2(diameter * 0.5f), new Color(1.0f, 1.0f, 1.0f, alpha));
-        }
-
-        /// <summary>
-        /// draw slider
-        /// </summary>
-        /// <param name="hitObject"></param>
-        /// <param name="alpha"></param>
-        /// <param name="approachCircleValue"></param>
-        /// <param name="backgroundLayer"0 -> background (slider body), 1 -> middle (hitcircles), 2 -> foreground (approach circles)</param>
-        private void DrawSlider(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, float approachCircleValue, int backgroundLayer)
-        {
-            float time = (float)(this.songPlayer.SongTime - hitObject.StartTime) / (float)((hitObject.SegmentEndTime - hitObject.StartTime) * hitObject.RepeatCount);
-            byte reverseArrowType = (hitObject.RepeatCount > 1) ? (byte)1 : (byte)0;
-            if (time < 0)
-            {
-                if (backgroundLayer == 0)
-                {
-                    this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, reverseArrowType);
-                }
-                else if (backgroundLayer == 1)
-                {
-                    this.DrawHitcircle(hitObject, alpha);
-                }
-                else
-                {
-                    this.DrawApproachCircle(hitObject, alpha, approachCircleValue);
-                }
-                return;
-            }
-            else if (time > 1)
-            {
-                time = 1;
-            }
-            time *= hitObject.RepeatCount;
-            if (time > 1)
-            {
-                bool drawArrow = time - (hitObject.RepeatCount - 1) < 0;
-                int order = 0;
-                while (time > 1)
-                {
-                    time -= 1;
-                    order++;
-                    reverseArrowType = drawArrow ? (byte)1 : (byte)0;
-                }
-                if (order % 2 != 0)
-                {
-                    time = 1 - time;
-                    reverseArrowType = drawArrow ? (byte)2 : (byte)0;
-                }
-            }
-            if (backgroundLayer == 0)
-            {
-                this.DrawSliderBody(hitObject, alpha, this.circleDiameter / 2, reverseArrowType);
-            }
-            else if (backgroundLayer == 2)
-            {
-                Vector2 pos = hitObject.PositionAtTime(time);
-                float diameter = this.circleDiameter * 2.0f;
-                this.sliderFollowCircleTexture.Draw(pos, diameter, diameter, new Vector2(0.5f * diameter), new Color(1.0f, 1.0f, 1.0f, alpha));
-            }
-        }
-
-        private void DrawSliderBody(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, int radius, int zindex)
-        {
-            float smallLength = hitObject.TotalLength;
-            Color color = Color.White;
-            for (float i = 0; i < smallLength + 10; i += 10)
-            {
-                if (i > smallLength)
-                {
-                    i = smallLength;
-                }
-                Vector2 pos = hitObject.PositionAtTime(i / smallLength);
-                int diameter = this.circleDiameter;
-                color.A = (byte)(255 * alpha);
-                this.sliderEdgeTexture.Draw(pos, diameter, diameter, new Vector2(diameter * 0.5f), color);
-                if (i == smallLength)
-                {
-                    break;
-                }
-            }
-            color.A = 255;
-            for (float i = 0; i < smallLength + 10; i += 10)
-            {
-                if (i > smallLength)
-                {
-                    i = smallLength;
-                }
-                Vector2 pos = hitObject.PositionAtTime(i / smallLength);
-                int diameter = this.circleDiameter;
-                this.sliderBodyTexture.Draw(pos, diameter, diameter, new Vector2(diameter * 0.5f), color);
-                if (i == smallLength)
-                {
-                    break;
-                }
-            }
-        }
-
-        private void DrawSliderBody(BMAPI.v1.HitObjects.SliderObject hitObject, float alpha, int radius, int zindex, byte reverseArrowType)
-        {
-            float smallLength = hitObject.TotalLength;
-            Color color = Color.White;
-            float depthHigh = (zindex * 3 + 2) / 1000.0f;
-            float depthMed = (zindex * 3 + 1) / 1000.0f;
-            float depthLow = (zindex * 3) / 1000.0f;
-            byte alphaByte = (byte)(255 * alpha);
-            for (float i = 0; i < smallLength + 10; i += 10)
-            {
-                if (i > smallLength)
-                {
-                    i = smallLength;
-                }
-                Vector2 pos = hitObject.PositionAtTime(i / smallLength);
-                int diameter = this.circleDiameter;
-                color.A = alphaByte;
-                this.sliderEdgeTexture.Draw(pos, diameter, diameter, new Vector2(0.5f * diameter), color);
-                //this.spriteBatch.Draw(this.sliderEdgeTexture, rect, null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.4f + depthHigh);
-                color.A = 255;
-                //this.spriteBatch.Draw(this.sliderBodyTexture, rect, null, color, 0f, Vector2.Zero, SpriteEffects.None, 0.4f + depthMed);
-                this.sliderBodyTexture.Draw(pos, diameter, diameter, new Vector2(0.5f * diameter), color);
-                if (i == smallLength)
-                {
-                    break;
-                }
-            }
-            if (reverseArrowType != 0)
-            {
-                /*
-                color.A = alphaByte;
-                Rectangle mode;
-                float rotation;
-                if (reverseArrowType == 1)
-                {
-                    mode = lastRect;
-                    rotation = (float)Math.Atan2(lastRectDiff.Y - lastRect.Y, lastRectDiff.X - lastRect.X);
-                }
-                else
-                {
-                    rotation = (float)Math.Atan2(firstRectDiff.Y - firstRect.Y, firstRectDiff.X - firstRect.X);
-                    mode = firstRect;
-                }
-                mode.X += 52;
-                mode.Y += 52;
-                this.spriteBatch.Draw(this.reverseArrowTexture, mode, null, color, rotation, new Vector2(64.0f), SpriteEffects.None, 0.4f + depthLow);
-                */
-            }
-        }
-
-        private void DrawBoxOutline(Rectangle rect, Color color)
-        {
-            Vector2 rp0 = new Vector2(rect.X, rect.Y);
-            Vector2 rp1 = new Vector2(rect.X + rect.Width, rect.Y);
-            Vector2 rp2 = new Vector2(rect.X + rect.Width, rect.Y + rect.Height);
-            Vector2 rp3 = new Vector2(rect.X, rect.Y + rect.Height);
-            this.DrawLine(rp0, rp1, color);
-            this.DrawLine(rp1, rp2, color);
-            this.DrawLine(rp2, rp3, color);
-            this.DrawLine(rp3, rp0, color);
+            */
         }
 
         public void LoadReplay(ReplayAPI.Replay replay)
@@ -904,37 +629,82 @@ namespace ReplayViewer
             if (this.Beatmap != null)
             {
                 this.FirstHitObjectTime = (int)this.Beatmap.HitObjects[0].StartTime;
-                this.Visual_BeatmapAR = this.Beatmap.ApproachRate;
-                this.Visual_BeatmapCS = this.Beatmap.CircleSize;
                 this.songPlayer.Start(Path.Combine(this.Beatmap.Folder, this.Beatmap.AudioFilename));
                 this.JumpTo(this.FirstHitObjectTime - 1000);
-            }
-            this.ApplyMods(replay);
-        }
-
-        public void ApplyMods(ReplayAPI.Replay replay)
-        {
-            if (replay.Mods.HasFlag(ReplayAPI.Mods.Easy))
-            {
-                this.Visual_EasyAR = true;
-                this.Visual_EasyCS = true;
-                this.Visual_HardRockAR = false;
-                this.Visual_HardRockCS = false;
-            }
-            else if (replay.Mods.HasFlag(ReplayAPI.Mods.HardRock))
-            {
-                this.Visual_EasyAR = false;
-                this.Visual_EasyCS = false;
-                this.Visual_HardRockAR = true;
-                this.Visual_HardRockCS = true;
+                this.ApplyMods(replay, this.Beatmap.ApproachRate, this.Beatmap.CircleSize);
             }
             else
             {
-                this.Visual_EasyAR = false;
-                this.Visual_EasyCS = false;
-                this.Visual_HardRockAR = false;
-                this.Visual_HardRockCS = false;
+                this.ApplyMods(replay, 5.0f, 5.0f);
             }
+#if DEBUG
+            if (this.Beatmap != null)
+            {
+                int segSum = 0;
+                int sliderCount = 0;
+                int biggestSeg = 0;
+                int smallestSeg = int.MaxValue;
+                foreach (var hitobj in this.Beatmap.HitObjects)
+                {
+                    if (hitobj.Type.HasFlag(BMAPI.v1.HitObjectType.Slider))
+                    {
+                        var slider = hitobj as BMAPI.v1.HitObjects.SliderObject;
+                        int n = 0;
+                        foreach (var curve in slider.Curves)
+                        {
+                            n += curve.DrawingPoints.Count;
+                        }
+                        segSum += n;
+                        ++sliderCount;
+                        if (n > biggestSeg)
+                            biggestSeg = n;
+                        if (n < smallestSeg)
+                            smallestSeg = n;
+                    }
+                }
+                Console.WriteLine("replay loaded");
+                Console.WriteLine("slider segments: min {0}, max {1}, avg {2}", smallestSeg, biggestSeg, segSum / (float)sliderCount);
+            }
+#endif
+        }
+
+        /// <summary>
+        /// this is the way osu maps difficulty levels from 0 -> 10 to output
+        /// </summary>
+        /// <param name="difficulty"></param>
+        /// <param name="v0">output when difficulty = 0</param>
+        /// <param name="v1">output when difficulty = 5</param>
+        /// <param name="v2">output when difficulty = 10</param>
+        /// <returns></returns>
+        private float DifficultyRange(float difficulty, float v0, float v1, float v2)
+        {
+            if (difficulty > 5)
+                return v1 + (v2 - v1) * (difficulty - 5) / 5;
+            if (difficulty < 5)
+                return v1 - (v1 - v0) * (5 - difficulty) / 5;
+            return v1;
+        }
+
+        public void ApplyMods(ReplayAPI.Replay replay, float baseAR, float baseCS)
+        {
+            if (replay.Mods.HasFlag(ReplayAPI.Mods.Easy))
+            {
+                shader.AR = baseAR * 0.5f;
+                shader.CS = baseCS * 0.5f;
+            }
+            else if (replay.Mods.HasFlag(ReplayAPI.Mods.HardRock))
+            {
+                shader.AR = Math.Min(baseAR * 1.4f, 10.0f);
+                shader.CS = baseCS * 1.3f;
+                this.Visual_MapInvert = true;
+            }
+            else
+            {
+                shader.AR = baseAR;
+                shader.CS = baseCS;
+            }
+            this.AnimationStartOffset = DifficultyRange(shader.AR, 1800, 1200, 450);
+            this.AnimationEndOffset = this.AnimationStartOffset * 2.0f / 3.0f;
             if (replay.Mods.HasFlag(ReplayAPI.Mods.DoubleTime))
             {
                 this.State_PlaybackSpeed = 1.5f;
@@ -947,52 +717,12 @@ namespace ReplayViewer
             {
                 State_PlaybackSpeed = 1.0f;
             }
-            this.UpdateApproachRate();
-            this.UpdateCircleSize();
-            this.Visual_MapInvert = this.Visual_HardRockAR && this.Visual_HardRockCS;
         }
 
         public void UnloadReplay(byte pos)
         {
             this.replayFrames[pos] = null;
             this.nearbyFrames[pos] = new List<ReplayAPI.ReplayFrame>();
-        }
-
-        public void UpdateApproachRate()
-        {
-            // from beatmap approach rate to actual ms in approach rate
-            float moddedAR = this.Visual_BeatmapAR;
-            if (this.Visual_HardRockAR && !this.Visual_EasyAR)
-            {
-                moddedAR *= 1.4f;
-            }
-            else if (!this.Visual_HardRockAR && this.Visual_EasyAR)
-            {
-                moddedAR /= 2.0f;
-            }
-            if (moddedAR > 10)
-            {
-                moddedAR = 10;
-            }
-            this.approachRate = (int)(-150 * moddedAR + 1950);
-        }
-
-        public void UpdateCircleSize()
-        {
-            // from beatmap circle size to actual pixels in radius
-            float moddedCS = this.Visual_BeatmapCS;
-            if (this.Visual_HardRockCS && !this.Visual_EasyCS)
-            {
-                moddedCS *= 1.3f;
-            }
-            else if (!this.Visual_HardRockCS && this.Visual_EasyCS)
-            {
-                moddedCS /= 2.0f;
-            }
-            //this.circleDiameter = (int)(2 * (40 - 4 * (moddedCS - 2)));
-            this.circleDiameter = (int)(109 - 9 * moddedCS);
-            if (this.circleDiameter < 5)
-                this.circleDiameter = 5;
         }
 
         public void SetSongTimePercent(float percent)

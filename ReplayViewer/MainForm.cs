@@ -22,6 +22,8 @@ namespace ReplayViewer
         public static string Path_Img_SliderEdge = @"img/slideredge.png";
         public static string Path_Img_SliderBody = @"img/sliderbody.png";
         public static string Path_Img_ReverseArrow = @"img/reversearrow.png";
+        public const string Path_Vs = @"img/vs.glsl";
+        public const string Path_Fs = @"img/fs.glsl";
         public static MainForm self;
         public List<ReplayAPI.Replay> CurrentReplays;
         public OsuDbAPI.OsuDbFile OsuDbFile { get; set; }
@@ -624,13 +626,6 @@ namespace ReplayViewer
         private void onscreenHelpCtrlHToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Canvas.ShowHelp = 2;
-        }
-
-        public void UpdateFromMetadata(ReplayAPI.Replay replay)
-        {
-            this.Canvas.ApplyMods(replay);
-            this.CurrentReplays[this.Canvas.State_ReplaySelected] = replay;
-            this.UpdateTitle();
         }
 
         private void axisFlipBtn_Click(object sender, EventArgs e)
